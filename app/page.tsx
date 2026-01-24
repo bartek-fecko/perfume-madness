@@ -2,12 +2,19 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/actions/auth";
 import {
   getPerfumes,
-  getFollowingPerfumes,
+  getAllUsers,
+  getUserPerfumes,
+  getUserProfile,
   getCategoryCounts,
 } from "@/lib/actions/perfumes";
 import { TopHeader } from "@/components/top-header";
 import { DashboardContent } from "@/components/dashboard-content";
-import type { PerfumeCategory, SortOption, SortDirection, Perfume } from "@/lib/types";
+import type {
+  PerfumeCategory,
+  SortOption,
+  SortDirection,
+  Perfume,
+} from "@/lib/types";
 
 interface PageProps {
   searchParams: Promise<{
@@ -16,6 +23,7 @@ interface PageProps {
     sort?: string;
     dir?: string;
     view?: string;
+    user?: string; // ID wybranego użytkownika
   }>;
 }
 
@@ -27,16 +35,20 @@ export default async function HomePage({ searchParams }: PageProps) {
   const search = params.search || "";
   const sortBy = (params.sort || "created_at") as SortOption;
   const sortDirection = (params.dir || "desc") as SortDirection;
-  const viewMode = (params.view || "my") as "my" | "following";
+  const viewMode = (params.view || "my") as "my" | "explore"; // Zmieniono z "following" na "explore"
+  const selectedUserId = params.user;
 
-  // Fetch data server-side - parallelize all database calls for better performance
+  // Fetch data server-side
   let perfumes: Perfume[] = [];
   let categoryCounts: Record<string, number> = {};
   let favorites: Perfume[] = [];
+  let users: any[] = [];
+  let selectedUserProfile: any = null;
 
   if (user) {
     if (viewMode === "my") {
-      // Parallelize perfumes and categoryCounts queries
+      // TRYB: Moja kolekcja
+      console.log("📦 Loading MY collection");
       [perfumes, categoryCounts, favorites] = await Promise.all([
         getPerfumes({
           userId: user.id,
@@ -48,17 +60,24 @@ export default async function HomePage({ searchParams }: PageProps) {
         getCategoryCounts(user.id),
         getPerfumes({ userId: user.id, favoritesOnly: true }),
       ]);
-    } else {
-      // Parallelize perfumes and favorites queries
-      [perfumes, favorites] = await Promise.all([
-        getFollowingPerfumes({
+    } else if (selectedUserId) {
+      // TRYB: Kolekcja wybranego użytkownika
+      console.log("👤 Loading user collection:", selectedUserId);
+      [perfumes, selectedUserProfile, categoryCounts] = await Promise.all([
+        getUserPerfumes(selectedUserId, {
           category,
           search,
           sortBy,
           sortDirection,
         }),
-        getPerfumes({ userId: user.id, favoritesOnly: true }),
+        getUserProfile(selectedUserId),
+        getCategoryCounts(selectedUserId), // Policz kategorie dla wybranego użytkownika
       ]);
+    } else {
+      // TRYB: Lista użytkowników do eksploracji
+      console.log("🌐 Loading users list");
+      users = await getAllUsers();
+      console.log("👥 Found users:", users.length);
     }
   }
 
@@ -78,6 +97,9 @@ export default async function HomePage({ searchParams }: PageProps) {
             initialSortBy={sortBy}
             initialSortDirection={sortDirection}
             initialViewMode={viewMode}
+            initialUsers={users}
+            selectedUserId={selectedUserId}
+            selectedUserProfile={selectedUserProfile}
           />
         </Suspense>
       </div>

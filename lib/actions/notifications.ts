@@ -6,16 +6,15 @@ import type { Notification } from "@/lib/types";
 
 export async function getNotifications(): Promise<Notification[]> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
   const { data, error } = await supabase
     .from("notifications")
-    .select(`
-      *,
-      perfumes:related_perfume_id (name)
-    `)
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -25,16 +24,31 @@ export async function getNotifications(): Promise<Notification[]> {
     return [];
   }
 
-  return data.map(n => ({
-    ...n,
-    perfume_name: n.perfumes?.name,
-  })) as Notification[];
+  // Pobierz nazwy perfum ręcznie
+  const notificationsWithPerfumeNames = await Promise.all(
+    data.map(async (n) => {
+      let perfume_name = undefined;
+      if (n.related_perfume_id) {
+        const { data: perfume } = await supabase
+          .from("perfumes")
+          .select("name")
+          .eq("id", n.related_perfume_id)
+          .single();
+        perfume_name = perfume?.name;
+      }
+      return { ...n, perfume_name };
+    }),
+  );
+
+  return notificationsWithPerfumeNames as Notification[];
 }
 
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return 0;
 
   const { count, error } = await supabase
@@ -51,10 +65,14 @@ export async function getUnreadNotificationCount(): Promise<number> {
   return count || 0;
 }
 
-export async function markNotificationAsRead(id: string): Promise<{ success: boolean }> {
+export async function markNotificationAsRead(
+  id: string,
+): Promise<{ success: boolean }> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { success: false };
 
   const { error } = await supabase
@@ -72,10 +90,14 @@ export async function markNotificationAsRead(id: string): Promise<{ success: boo
   return { success: true };
 }
 
-export async function markAllNotificationsAsRead(): Promise<{ success: boolean }> {
+export async function markAllNotificationsAsRead(): Promise<{
+  success: boolean;
+}> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { success: false };
 
   const { error } = await supabase

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Scentory - Perfume Collection Tracker',
+  title: 'PerfumeMadness - Perfume Collection Tracker',
   description: 'Track and manage your personal perfume collection with elegance',
   generator: 'v0.app',
   icons: {

@@ -2,7 +2,12 @@
 
 import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { Perfume, PerfumeCategory, SortOption, SortDirection } from "@/lib/types";
+import type {
+  Perfume,
+  PerfumeCategory,
+  SortOption,
+  SortDirection,
+} from "@/lib/types";
 
 export async function getPerfumes(options: {
   category?: PerfumeCategory;
@@ -13,10 +18,8 @@ export async function getPerfumes(options: {
   favoritesOnly?: boolean;
 }): Promise<Perfume[]> {
   const supabase = await createClient();
-  
-  let query = supabase
-    .from("perfumes")
-    .select("*");
+
+  let query = supabase.from("perfumes").select("*");
 
   if (options.userId) {
     query = query.eq("user_id", options.userId);
@@ -28,7 +31,7 @@ export async function getPerfumes(options: {
 
   if (options.search) {
     query = query.or(
-      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%,notes.cs.{${options.search}}`
+      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%,notes.cs.{${options.search}}`,
     );
   }
 
@@ -50,6 +53,72 @@ export async function getPerfumes(options: {
   return data as Perfume[];
 }
 
+// NOWA FUNKCJA - Pobierz wszystkich użytkowników
+export async function getAllUsers(): Promise<
+  {
+    id: string;
+    email: string;
+    full_name?: string;
+    avatar_url?: string;
+    perfume_count: number;
+    is_following: boolean;
+  }[]
+> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  console.log("🔐 Current user:", user?.email);
+  if (!user) return [];
+
+  // Pobierz wszystkich użytkowników z profiles
+  const { data: users, error } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, avatar_url");
+
+  console.log("👥 Fetched profiles:", users?.length, "Error:", error);
+  if (!users) return [];
+
+  // Pobierz użytkowników których obserwujesz
+  const { data: following } = await supabase
+    .from("user_follows")
+    .select("following_id")
+    .eq("follower_id", user.id);
+
+  const followingIds = new Set(following?.map((f) => f.following_id) || []);
+
+  // Policz perfumy dla każdego użytkownika
+  const usersWithCounts = await Promise.all(
+    users
+      .filter((u) => u.id !== user.id) // Ukryj siebie z listy
+      .map(async (u) => {
+        const { data: perfumes } = await supabase
+          .from("perfumes")
+          .select("id")
+          .eq("user_id", u.id);
+
+        const perfumeCount = perfumes?.length || 0;
+        console.log(`👤 User ${u.email}: ${perfumeCount} perfumes`);
+
+        return {
+          ...u,
+          perfume_count: perfumeCount,
+          is_following: followingIds.has(u.id),
+        };
+      }),
+  );
+
+  // Sortuj: najpierw obserwowani, potem po liczbie perfum
+  return usersWithCounts.sort((a, b) => {
+    if (a.is_following && !b.is_following) return -1;
+    if (!a.is_following && b.is_following) return 1;
+    return b.perfume_count - a.perfume_count;
+  });
+}
+
+// NOWA FUNKCJA - Pobierz perfumy konkretnego użytkownika
+// Pobierz perfumy od obserwowanych użytkowników (stara funkcjonalność)
 export async function getFollowingPerfumes(options: {
   category?: PerfumeCategory;
   search?: string;
@@ -57,8 +126,10 @@ export async function getFollowingPerfumes(options: {
   sortDirection?: SortDirection;
 }): Promise<Perfume[]> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
   // Get users I follow
@@ -69,12 +140,9 @@ export async function getFollowingPerfumes(options: {
 
   if (!following || following.length === 0) return [];
 
-  const followingIds = following.map(f => f.following_id);
+  const followingIds = following.map((f) => f.following_id);
 
-  let query = supabase
-    .from("perfumes")
-    .select("*")
-    .in("user_id", followingIds);
+  let query = supabase.from("perfumes").select("*").in("user_id", followingIds);
 
   if (options.category && options.category !== "All") {
     query = query.contains("categories", [options.category]);
@@ -82,7 +150,7 @@ export async function getFollowingPerfumes(options: {
 
   if (options.search) {
     query = query.or(
-      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%`
+      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%`,
     );
   }
 
@@ -100,9 +168,83 @@ export async function getFollowingPerfumes(options: {
   return data as Perfume[];
 }
 
+export async function getUserPerfumes(
+  userId: string,
+  options: {
+    category?: PerfumeCategory;
+    search?: string;
+    sortBy?: SortOption;
+    sortDirection?: SortDirection;
+  },
+): Promise<Perfume[]> {
+  const supabase = await createClient();
+
+  let query = supabase.from("perfumes").select("*").eq("user_id", userId);
+
+  if (options.category && options.category !== "All") {
+    query = query.contains("categories", [options.category]);
+  }
+
+  if (options.search) {
+    query = query.or(
+      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%`,
+    );
+  }
+
+  const sortBy = options.sortBy || "created_at";
+  const sortDirection = options.sortDirection || "desc";
+  query = query.order(sortBy, { ascending: sortDirection === "asc" });
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching user perfumes:", error);
+    return [];
+  }
+
+  return data as Perfume[];
+}
+
+// NOWA FUNKCJA - Pobierz dane użytkownika
+export async function getUserProfile(userId: string): Promise<{
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+  is_following: boolean;
+} | null> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, avatar_url")
+    .eq("id", userId)
+    .single();
+
+  if (!profile) return null;
+
+  // Sprawdź czy obserwujesz tego użytkownika
+  const { data: followData } = await supabase
+    .from("user_follows")
+    .select("id")
+    .eq("follower_id", user.id)
+    .eq("following_id", userId)
+    .single();
+
+  return {
+    ...profile,
+    is_following: !!followData,
+  };
+}
+
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from("perfumes")
     .select("*")
@@ -128,8 +270,10 @@ export async function createPerfume(perfume: {
   image_url?: string;
 }): Promise<{ success: boolean; error?: string; perfume?: Perfume }> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
@@ -156,7 +300,7 @@ export async function createPerfume(perfume: {
     .eq("following_id", user.id);
 
   if (followers && followers.length > 0) {
-    const notifications = followers.map(f => ({
+    const notifications = followers.map((f) => ({
       user_id: f.follower_id,
       type: "new_perfume" as const,
       message: `Added a new perfume: ${perfume.name}`,
@@ -167,7 +311,7 @@ export async function createPerfume(perfume: {
     await supabase.from("notifications").insert(notifications);
   }
 
-  revalidateTag("perfumes", "max");
+  revalidateTag("perfumes");
   return { success: true, perfume: data as Perfume };
 }
 
@@ -183,11 +327,13 @@ export async function updatePerfume(
     categories: string[];
     image_url: string;
     is_favorite: boolean;
-  }>
+  }>,
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
@@ -203,14 +349,18 @@ export async function updatePerfume(
     return { success: false, error: error.message };
   }
 
-  revalidateTag("perfumes", "max");
+  revalidateTag("perfumes");
   return { success: true };
 }
 
-export async function deletePerfume(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deletePerfume(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
@@ -226,19 +376,22 @@ export async function deletePerfume(id: string): Promise<{ success: boolean; err
     return { success: false, error: error.message };
   }
 
-  revalidateTag("perfumes", "max");
+  revalidateTag("perfumes");
   return { success: true };
 }
 
-export async function toggleFavorite(id: string): Promise<{ success: boolean; isFavorite?: boolean; error?: string }> {
+export async function toggleFavorite(
+  id: string,
+): Promise<{ success: boolean; isFavorite?: boolean; error?: string }> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
 
-  // Get current state
   const { data: perfume } = await supabase
     .from("perfumes")
     .select("is_favorite")
@@ -254,7 +407,10 @@ export async function toggleFavorite(id: string): Promise<{ success: boolean; is
 
   const { error } = await supabase
     .from("perfumes")
-    .update({ is_favorite: newFavoriteState, updated_at: new Date().toISOString() })
+    .update({
+      is_favorite: newFavoriteState,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -263,14 +419,15 @@ export async function toggleFavorite(id: string): Promise<{ success: boolean; is
     return { success: false, error: error.message };
   }
 
-  revalidateTag("perfumes", "max");
+  revalidateTag("perfumes");
   return { success: true, isFavorite: newFavoriteState };
 }
 
-export async function getCategoryCounts(userId: string): Promise<Record<string, number>> {
+export async function getCategoryCounts(
+  userId: string,
+): Promise<Record<string, number>> {
   const supabase = await createClient();
-  
-  // Fetch only categories field for better performance
+
   const { data } = await supabase
     .from("perfumes")
     .select("categories")
@@ -279,13 +436,20 @@ export async function getCategoryCounts(userId: string): Promise<Record<string, 
   if (!data) return {};
 
   const counts: Record<string, number> = { All: data.length };
-  const categories = ["Kwiatowe", "Drzewne", "Świeże", "Cytrusowe", "Korzenne", "Słodkie", "Orientalne"];
+  const categories = [
+    "Kwiatowe",
+    "Drzewne",
+    "Świeże",
+    "Cytrusowe",
+    "Korzenne",
+    "Słodkie",
+    "Orientalne",
+  ];
 
-  // More efficient counting using Map
   const categoryMap = new Map<string, number>();
-  categories.forEach(cat => categoryMap.set(cat, 0));
+  categories.forEach((cat) => categoryMap.set(cat, 0));
 
-  data.forEach(p => {
+  data.forEach((p) => {
     if (p.categories && Array.isArray(p.categories)) {
       p.categories.forEach((cat: string) => {
         if (categoryMap.has(cat)) {
@@ -295,7 +459,7 @@ export async function getCategoryCounts(userId: string): Promise<Record<string, 
     }
   });
 
-  categories.forEach(cat => {
+  categories.forEach((cat) => {
     counts[cat] = categoryMap.get(cat) || 0;
   });
 

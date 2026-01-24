@@ -86,10 +86,10 @@ export function TopHeader({ user }: TopHeaderProps) {
     <header className="sticky top-0 z-50 bg-card border-b border-border h-14 px-6 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">S</span>
+          <span className="text-primary-foreground font-bold text-sm">PM</span>
         </div>
         <h1 className="text-lg font-semibold text-foreground tracking-tight">
-          Scentory
+          PerfumeMadness
         </h1>
         <span className="text-xs text-muted-foreground hidden sm:inline">
           Twoja kolekcja perfum

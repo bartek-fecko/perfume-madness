@@ -43,7 +43,8 @@ export function SearchHeader({
   hasFollowingNotification,
   isLoggedIn,
 }: SearchHeaderProps) {
-  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Data dodania";
+  const currentSortLabel =
+    sortOptions.find((o) => o.value === sortBy)?.label || "Data dodania";
 
   return (
     <div className="space-y-4">
@@ -83,7 +84,9 @@ export function SearchHeader({
           variant="outline"
           size="icon"
           className="h-10 w-10 bg-transparent"
-          onClick={() => onSortChange(sortBy, sortDirection === "asc" ? "desc" : "asc")}
+          onClick={() =>
+            onSortChange(sortBy, sortDirection === "asc" ? "desc" : "asc")
+          }
         >
           {sortDirection === "asc" ? "↑" : "↓"}
         </Button>
@@ -117,7 +120,7 @@ export function SearchHeader({
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Obserwowani
+          Uzytkownicy
           {hasFollowingNotification && activeTab !== "following" && (
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
           )}
