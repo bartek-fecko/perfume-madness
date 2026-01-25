@@ -12,6 +12,9 @@ export async function followUser(
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    console.log("🔐 User authenticated:", user?.email);
+
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
@@ -38,31 +41,43 @@ export async function followUser(
     });
 
     if (error) {
-      console.error("Error following user:", error);
+      console.error("❌ Error following user:", error);
       return { success: false, error: error.message };
     }
 
     console.log("✅ Follow successful, creating notification...");
 
     // Create notification for the followed user
-    const { error: notifError } = await supabase.from("notifications").insert({
+    const notificationPayload = {
       user_id: followingId,
-      type: "follow",
-      message: "Started following you",
       from_user_id: user.id,
-    });
+      type: "follow",
+      title: "Nowy obserwujący!",
+      message: "Zaczął Cię obserwować",
+      is_read: false,
+    };
+
+    console.log(
+      "📧 Notification payload:",
+      JSON.stringify(notificationPayload, null, 2),
+    );
+
+    const { data: notifData, error: notifError } = await supabase
+      .from("notifications")
+      .insert(notificationPayload)
+      .select();
 
     if (notifError) {
       console.error("❌ Error creating notification:", notifError);
-      // Nie zwracamy błędu - follow się powiódł
+      console.error("❌ Full error:", JSON.stringify(notifError, null, 2));
     } else {
-      console.log("✅ Notification created successfully");
+      console.log("✅ Notification created successfully:", notifData);
     }
 
     revalidateTag("follows");
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error in followUser:", error);
+    console.error("💥 Unexpected error in followUser:", error);
     return { success: false, error: "An unexpected error occurred" };
   }
 }

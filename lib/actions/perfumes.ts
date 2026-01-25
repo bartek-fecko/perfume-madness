@@ -9,6 +9,107 @@ import type {
   SortDirection,
 } from "@/lib/types";
 
+export async function createPerfume(perfume: {
+  name: string;
+  brand: string;
+  price: number;
+  rating: number;
+  description?: string;
+  notes: string[];
+  categories: string[];
+  image_url?: string;
+}): Promise<{ success: boolean; error?: string; perfume?: Perfume }> {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    console.log("🔐 User authenticated:", user?.email);
+
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    const { data, error } = await supabase
+      .from("perfumes")
+      .insert({
+        ...perfume,
+        user_id: user.id,
+        is_favorite: false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("❌ Error creating perfume:", error);
+      return { success: false, error: error.message };
+    }
+
+    console.log("✅ Perfume created:", data.id);
+    console.log("🔑 Current user ID:", user.id);
+
+    // Notify followers
+    const { data: followers, error: followersError } = await supabase
+      .from("user_follows")
+      .select("follower_id")
+      .eq("following_id", user.id);
+
+    console.log("👥 Found followers:", followers?.length || 0);
+
+    if (followersError) {
+      console.error("❌ Error fetching followers:", followersError);
+    }
+
+    if (followers && followers.length > 0) {
+      console.log("📧 Preparing to create", followers.length, "notifications");
+
+      const notifications = followers.map((f) => ({
+        user_id: f.follower_id,
+        from_user_id: user.id,
+        type: "new_perfume",
+        title: "Nowe perfumy!",
+        message: `Dodał nowe perfumy: ${perfume.name}`,
+        perfume_id: data.id,
+        is_read: false,
+      }));
+
+      console.log(
+        "📧 Notification payload:",
+        JSON.stringify(notifications[0], null, 2),
+      );
+
+      const { data: notifData, error: notifError } = await supabase
+        .from("notifications")
+        .insert(notifications)
+        .select();
+
+      if (notifError) {
+        console.error("❌ Error creating notifications:", notifError);
+        console.error("❌ Error code:", notifError.code);
+        console.error("❌ Error message:", notifError.message);
+        console.error("❌ Error details:", notifError.details);
+        console.error("❌ Error hint:", notifError.hint);
+      } else {
+        console.log(
+          "✅ Notifications created successfully:",
+          notifData?.length,
+        );
+      }
+    } else {
+      console.log("ℹ️ No followers to notify");
+    }
+
+    revalidateTag("perfumes");
+    return { success: true, perfume: data as Perfume };
+  } catch (err) {
+    console.error("💥 Unexpected error in createPerfume:", err);
+    return { success: false, error: "Unexpected error occurred" };
+  }
+}
+
+// Reszta funkcji bez zmian...
 export async function getPerfumes(options: {
   category?: PerfumeCategory;
   search?: string;
@@ -53,7 +154,6 @@ export async function getPerfumes(options: {
   return data as Perfume[];
 }
 
-// NOWA FUNKCJA - Pobierz wszystkich użytkowników
 export async function getAllUsers(): Promise<
   {
     id: string;
@@ -69,18 +169,14 @@ export async function getAllUsers(): Promise<
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log("🔐 Current user:", user?.email);
   if (!user) return [];
 
-  // Pobierz wszystkich użytkowników z profiles
   const { data: users, error } = await supabase
     .from("profiles")
     .select("id, email, full_name, avatar_url");
 
-  console.log("👥 Fetched profiles:", users?.length, "Error:", error);
   if (!users) return [];
 
-  // Pobierz użytkowników których obserwujesz
   const { data: following } = await supabase
     .from("user_follows")
     .select("following_id")
@@ -88,28 +184,23 @@ export async function getAllUsers(): Promise<
 
   const followingIds = new Set(following?.map((f) => f.following_id) || []);
 
-  // Policz perfumy dla każdego użytkownika
   const usersWithCounts = await Promise.all(
     users
-      .filter((u) => u.id !== user.id) // Ukryj siebie z listy
+      .filter((u) => u.id !== user.id)
       .map(async (u) => {
         const { data: perfumes } = await supabase
           .from("perfumes")
           .select("id")
           .eq("user_id", u.id);
 
-        const perfumeCount = perfumes?.length || 0;
-        console.log(`👤 User ${u.email}: ${perfumeCount} perfumes`);
-
         return {
           ...u,
-          perfume_count: perfumeCount,
+          perfume_count: perfumes?.length || 0,
           is_following: followingIds.has(u.id),
         };
       }),
   );
 
-  // Sortuj: najpierw obserwowani, potem po liczbie perfum
   return usersWithCounts.sort((a, b) => {
     if (a.is_following && !b.is_following) return -1;
     if (!a.is_following && b.is_following) return 1;
@@ -117,8 +208,6 @@ export async function getAllUsers(): Promise<
   });
 }
 
-// NOWA FUNKCJA - Pobierz perfumy konkretnego użytkownika
-// Pobierz perfumy od obserwowanych użytkowników (stara funkcjonalność)
 export async function getFollowingPerfumes(options: {
   category?: PerfumeCategory;
   search?: string;
@@ -132,7 +221,6 @@ export async function getFollowingPerfumes(options: {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Get users I follow
   const { data: following } = await supabase
     .from("user_follows")
     .select("following_id")
@@ -205,7 +293,6 @@ export async function getUserPerfumes(
   return data as Perfume[];
 }
 
-// NOWA FUNKCJA - Pobierz dane użytkownika
 export async function getUserProfile(userId: string): Promise<{
   id: string;
   email: string;
@@ -228,7 +315,6 @@ export async function getUserProfile(userId: string): Promise<{
 
   if (!profile) return null;
 
-  // Sprawdź czy obserwujesz tego użytkownika
   const { data: followData } = await supabase
     .from("user_follows")
     .select("id")
@@ -257,62 +343,6 @@ export async function getPerfumeById(id: string): Promise<Perfume | null> {
   }
 
   return data as Perfume;
-}
-
-export async function createPerfume(perfume: {
-  name: string;
-  brand: string;
-  price: number;
-  rating: number;
-  description?: string;
-  notes: string[];
-  categories: string[];
-  image_url?: string;
-}): Promise<{ success: boolean; error?: string; perfume?: Perfume }> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  const { data, error } = await supabase
-    .from("perfumes")
-    .insert({
-      ...perfume,
-      user_id: user.id,
-      is_favorite: false,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating perfume:", error);
-    return { success: false, error: error.message };
-  }
-
-  // Notify followers
-  const { data: followers } = await supabase
-    .from("user_follows")
-    .select("follower_id")
-    .eq("following_id", user.id);
-
-  if (followers && followers.length > 0) {
-    const notifications = followers.map((f) => ({
-      user_id: f.follower_id,
-      type: "new_perfume" as const,
-      message: `Added a new perfume: ${perfume.name}`,
-      related_perfume_id: data.id,
-      from_user_id: user.id,
-    }));
-
-    await supabase.from("notifications").insert(notifications);
-  }
-
-  revalidateTag("perfumes");
-  return { success: true, perfume: data as Perfume };
 }
 
 export async function updatePerfume(
@@ -365,6 +395,18 @@ export async function deletePerfume(
     return { success: false, error: "Not authenticated" };
   }
 
+  // Pobierz dane perfum przed usunięciem (do notyfikacji)
+  const { data: perfume } = await supabase
+    .from("perfumes")
+    .select("name, brand")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!perfume) {
+    return { success: false, error: "Perfume not found" };
+  }
+
   const { error } = await supabase
     .from("perfumes")
     .delete()
@@ -374,6 +416,37 @@ export async function deletePerfume(
   if (error) {
     console.error("Error deleting perfume:", error);
     return { success: false, error: error.message };
+  }
+
+  console.log("✅ Perfume deleted:", id);
+
+  // Notify followers about deletion
+  const { data: followers } = await supabase
+    .from("user_follows")
+    .select("follower_id")
+    .eq("following_id", user.id);
+
+  if (followers && followers.length > 0) {
+    console.log("📧 Notifying", followers.length, "followers about deletion");
+
+    const notifications = followers.map((f) => ({
+      user_id: f.follower_id,
+      from_user_id: user.id,
+      type: "perfume_deleted",
+      title: "Perfumy usunięte",
+      message: `Usunął perfumy: ${perfume.name} by ${perfume.brand}`,
+      is_read: false,
+    }));
+
+    const { error: notifError } = await supabase
+      .from("notifications")
+      .insert(notifications);
+
+    if (notifError) {
+      console.error("❌ Error creating deletion notifications:", notifError);
+    } else {
+      console.log("✅ Deletion notifications created");
+    }
   }
 
   revalidateTag("perfumes");

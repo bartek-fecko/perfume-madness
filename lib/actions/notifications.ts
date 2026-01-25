@@ -24,23 +24,49 @@ export async function getNotifications(): Promise<Notification[]> {
     return [];
   }
 
-  // Pobierz nazwy perfum ręcznie
-  const notificationsWithPerfumeNames = await Promise.all(
+  if (!data || data.length === 0) return [];
+
+  // Pobierz nazwy perfum i dane użytkowników
+  const notificationsWithDetails = await Promise.all(
     data.map(async (n) => {
       let perfume_name = undefined;
-      if (n.related_perfume_id) {
+      let from_user_name = undefined;
+      let from_user_avatar = undefined;
+
+      // Pobierz nazwę perfum jeśli istnieje
+      if (n.perfume_id) {
         const { data: perfume } = await supabase
           .from("perfumes")
           .select("name")
-          .eq("id", n.related_perfume_id)
+          .eq("id", n.perfume_id)
           .single();
         perfume_name = perfume?.name;
       }
-      return { ...n, perfume_name };
+
+      // Pobierz dane użytkownika który wywołał notyfikację
+      if (n.from_user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, email, avatar_url")
+          .eq("id", n.from_user_id)
+          .single();
+
+        if (profile) {
+          from_user_name = profile.full_name || profile.email.split("@")[0];
+          from_user_avatar = profile.avatar_url;
+        }
+      }
+
+      return {
+        ...n,
+        perfume_name,
+        from_user_name,
+        from_user_avatar,
+      };
     }),
   );
 
-  return notificationsWithPerfumeNames as Notification[];
+  return notificationsWithDetails as Notification[];
 }
 
 export async function getUnreadNotificationCount(): Promise<number> {
@@ -86,7 +112,7 @@ export async function markNotificationAsRead(
     return { success: false };
   }
 
-  revalidateTag("notifications", "max");
+  revalidateTag("notifications");
   return { success: true };
 }
 
@@ -111,6 +137,6 @@ export async function markAllNotificationsAsRead(): Promise<{
     return { success: false };
   }
 
-  revalidateTag("notifications", "max");
+  revalidateTag("notifications");
   return { success: true };
 }

@@ -66,6 +66,22 @@ export function DashboardContent({
   const [viewMode, setViewMode] = useState<"my" | "explore">(initialViewMode);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Synchronizuj state z props gdy się zmienią (np. po nawigacji z notyfikacji)
+  useEffect(() => {
+    setViewMode(initialViewMode);
+    setCategory(initialCategory);
+    setSearch(initialSearch);
+    setSortBy(initialSortBy);
+    setSortDirection(initialSortDirection);
+  }, [
+    initialViewMode,
+    initialCategory,
+    initialSearch,
+    initialSortBy,
+    initialSortDirection,
+    selectedUserId,
+  ]);
+
   // Update URL and trigger server re-fetch
   const updateFilters = useCallback(
     (updates: {
@@ -184,10 +200,10 @@ export function DashboardContent({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md px-6">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl text-primary font-bold">S</span>
+            <span className="text-3xl text-primary font-bold">PM</span>
           </div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">
-            Witaj w Scentory
+            Witaj w PerfumeMadness
           </h2>
           <p className="text-muted-foreground mb-6">
             Zaloguj się przez Google, aby rozpocząć śledzenie swojej kolekcji
@@ -254,7 +270,7 @@ export function DashboardContent({
             {/* Back Button */}
             <button
               onClick={handleBackToExplore}
-              className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              className="mb-6 mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
               Wróć do listy użytkowników
