@@ -25,6 +25,7 @@ import {
   markNotificationAsRead,
 } from "@/lib/actions/notifications";
 import type { User as UserType, Notification } from "@/lib/types";
+import Image from "next/image";
 
 interface TopHeaderProps {
   user: UserType | null;
@@ -286,11 +287,17 @@ export function TopHeader({ user }: TopHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border h-14 px-6 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">PM</span>
+    <header className="sticky top-0 z-50 bg-card border-b border-border h-20 px-6 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <div className="relative w-16 h-16 rounded-full overflow-hidden mx-auto bg-primary/10">
+          <Image
+            src="/logo.jpg"
+            alt="PerfumeMadness logo"
+            fill
+            className="object-contain"
+          />
         </div>
+
         <h1 className="text-lg font-semibold text-foreground tracking-tight">
           PerfumeMadness
         </h1>

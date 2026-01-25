@@ -32,7 +32,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="mt-4 text-2xl font-bold text-foreground mb-2">
           Eksploruj użytkowników
         </h2>
         <p className="text-muted-foreground">
