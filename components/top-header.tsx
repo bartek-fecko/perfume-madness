@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, LogIn, User, Sparkles, Trash2 } from "lucide-react";
+import {
+  Bell,
+  LogIn,
+  User,
+  Sparkles,
+  Trash2,
+  MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -175,6 +182,65 @@ export function TopHeader({ user }: TopHeaderProps) {
       );
     }
 
+    if (notification.type === "new_comment") {
+      return (
+        <div className="space-y-1.5">
+          {/* Klikalna sekcja - użytkownik */}
+          <button
+            onClick={(e) =>
+              notification.from_user_id &&
+              handleUserClick(e, notification.from_user_id)
+            }
+            className="flex items-center gap-2 hover:opacity-70 transition-opacity w-fit"
+          >
+            {notification.from_user_avatar ? (
+              <Avatar className="w-7 h-7 border border-border">
+                <AvatarImage src={notification.from_user_avatar} />
+                <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                  {notification.from_user_name?.[0]?.toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-primary" />
+              </div>
+            )}
+            <p className="text-sm font-medium text-foreground">
+              {notification.from_user_name || "Użytkownik"}
+            </p>
+          </button>
+
+          {/* Wiadomość o komentarzu */}
+          <p className="text-sm text-muted-foreground pl-9">
+            skomentował Twoje perfumy:{" "}
+            {notification.perfume_id ? (
+              <button
+                onClick={(e) => handlePerfumeClick(e, notification.perfume_id!)}
+                className="font-medium text-foreground hover:text-primary transition-colors underline decoration-dotted"
+              >
+                {notification.perfume_name || "Twoje perfumy"}
+              </button>
+            ) : (
+              <span className="font-medium text-foreground">
+                {notification.perfume_name || "Twoje perfumy"}
+              </span>
+            )}
+          </p>
+
+          {/* Klikalna sekcja - zobacz komentarz */}
+          {notification.perfume_id && (
+            <button
+              onClick={(e) => handlePerfumeClick(e, notification.perfume_id!)}
+              className="flex items-center gap-1.5 text-xs text-primary pl-9 pt-0.5 hover:underline w-fit"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span className="font-medium">Zobacz komentarz →</span>
+            </button>
+          )}
+        </div>
+      );
+    }
+
     if (notification.type === "perfume_deleted") {
       return (
         <div className="space-y-1.5">
@@ -297,7 +363,6 @@ export function TopHeader({ user }: TopHeaderProps) {
             className="object-contain"
           />
         </div>
-
         <h1 className="text-lg font-semibold text-foreground tracking-tight">
           PerfumeMadness
         </h1>

@@ -3,13 +3,22 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowLeft, Star, Edit2, Save, X, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Star,
+  Edit2,
+  Save,
+  X,
+  Trash2,
+  MessageSquare,
+  Send,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,32 +30,67 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { updatePerfume, deletePerfume, toggleFavorite } from "@/lib/actions/perfumes";
+import {
+  updatePerfume,
+  deletePerfume,
+  toggleFavorite,
+} from "@/lib/actions/perfumes";
+import { addComment, deleteComment } from "@/lib/actions/comments";
 import { cn } from "@/lib/utils";
-import type { Perfume } from "@/lib/types";
+import type { Perfume, PerfumeComment } from "@/lib/types";
 
-const allCategories = ["Kwiatowe", "Drzewne", "Świeże", "Cytrusowe", "Korzenne", "Słodkie", "Orientalne"];
+const allCategories = [
+  "Kwiatowe",
+  "Drzewne",
+  "Świeże",
+  "Cytrusowe",
+  "Korzenne",
+  "Słodkie",
+  "Orientalne",
+];
 
 interface PerfumeDetailProps {
   perfume: Perfume;
   isReadOnly: boolean;
+  initialComments: PerfumeComment[];
+  currentUserId: string | null;
+  userCommentCount: number;
 }
 
-export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
+export function PerfumeDetail({
+  perfume,
+  isReadOnly,
+  initialComments,
+  currentUserId,
+  userCommentCount: initialUserCommentCount,
+}: PerfumeDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Perfume edit states
   const [name, setName] = useState(perfume.name);
   const [brand, setBrand] = useState(perfume.brand);
   const [price, setPrice] = useState(perfume.price.toString());
   const [rating, setRating] = useState(perfume.rating);
   const [description, setDescription] = useState(perfume.description || "");
   const [notes, setNotes] = useState(perfume.notes?.join(", ") || "");
-  const [categories, setCategories] = useState<string[]>(perfume.categories || []);
+  const [categories, setCategories] = useState<string[]>(
+    perfume.categories || [],
+  );
   const [imageUrl, setImageUrl] = useState(perfume.image_url || "");
   const [isFavorite, setIsFavorite] = useState(perfume.is_favorite);
+
+  // Comments states
+  const [newComment, setNewComment] = useState("");
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [localCommentCount, setLocalCommentCount] = useState(
+    initialUserCommentCount,
+  );
+
+  const remainingComments = Math.max(0, 5 - localCommentCount);
+  const canComment = currentUserId && remainingComments > 0;
 
   const handleSave = () => {
     setError(null);
@@ -57,7 +101,10 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
         price: Number.parseFloat(price),
         rating,
         description: description || undefined,
-        notes: notes.split(",").map((n) => n.trim()).filter(Boolean),
+        notes: notes
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean),
         categories,
         image_url: imageUrl || undefined,
       });
@@ -107,8 +154,54 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
 
   const toggleCategory = (cat: string) => {
     setCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
     );
+  };
+
+  const handleAddComment = () => {
+    if (!newComment.trim() || newComment.length > 500) {
+      setCommentError("Komentarz musi mieć od 1 do 500 znaków");
+      return;
+    }
+
+    setCommentError(null);
+    startTransition(async () => {
+      const result = await addComment(perfume.id, newComment);
+      if (result.success) {
+        setNewComment("");
+        setLocalCommentCount((prev) => prev + 1);
+        router.refresh();
+      } else {
+        setCommentError(result.error || "Nie udało się dodać komentarza");
+      }
+    });
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    startTransition(async () => {
+      const result = await deleteComment(commentId);
+      if (result.success) {
+        setLocalCommentCount((prev) => prev - 1);
+        router.refresh();
+      } else {
+        setCommentError(result.error || "Nie udało się usunąć komentarza");
+      }
+    });
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return "teraz";
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m temu`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h temu`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d temu`;
+    return date.toLocaleDateString("pl-PL", {
+      day: "numeric",
+      month: "short",
+    });
   };
 
   return (
@@ -148,8 +241,8 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Usunąć perfumy?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Ta akcja nie może zostać cofnięta. To trwale usunie
-                      &quot;{perfume.name}&quot; z Twojej kolekcji.
+                      Ta akcja nie może zostać cofnięta. To trwale usunie &quot;
+                      {perfume.name}&quot; z Twojej kolekcji.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -177,7 +270,11 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                 <X className="w-4 h-4" />
                 Anuluj
               </Button>
-              <Button onClick={handleSave} className="gap-2" disabled={isPending}>
+              <Button
+                onClick={handleSave}
+                className="gap-2"
+                disabled={isPending}
+              >
                 <Save className="w-4 h-4" />
                 {isPending ? "Zapisywanie..." : "Zapisz"}
               </Button>
@@ -232,7 +329,9 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                 onClick={handleToggleFavorite}
                 className={cn(
                   "absolute top-4 right-4 p-3 rounded-full bg-card/80 backdrop-blur-sm transition-colors",
-                  isFavorite ? "text-accent" : "text-muted-foreground hover:text-accent"
+                  isFavorite
+                    ? "text-accent"
+                    : "text-muted-foreground hover:text-accent",
                 )}
               >
                 <Star className={cn("w-6 h-6", isFavorite && "fill-current")} />
@@ -292,7 +391,7 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                           "w-6 h-6",
                           star <= rating
                             ? "text-accent fill-accent"
-                            : "text-border hover:text-accent/50"
+                            : "text-border hover:text-accent/50",
                         )}
                       />
                     </button>
@@ -305,7 +404,9 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                       key={i}
                       className={cn(
                         "w-5 h-5",
-                        i < perfume.rating ? "text-accent fill-accent" : "text-border"
+                        i < perfume.rating
+                          ? "text-accent fill-accent"
+                          : "text-border",
                       )}
                     />
                   ))}
@@ -330,12 +431,16 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                 />
               </div>
             ) : (
-              <p className="text-3xl font-bold text-foreground">${perfume.price}</p>
+              <p className="text-3xl font-bold text-foreground">
+                ${perfume.price}
+              </p>
             )}
 
             {/* Categories */}
             <div>
-              <h3 className="text-sm font-medium text-foreground mb-2">Kategorie</h3>
+              <h3 className="text-sm font-medium text-foreground mb-2">
+                Kategorie
+              </h3>
               {isEditing ? (
                 <div className="flex flex-wrap gap-2">
                   {allCategories.map((cat) => (
@@ -345,7 +450,7 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                         "flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-colors",
                         categories.includes(cat)
                           ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
+                          : "border-border hover:border-primary/50",
                       )}
                     >
                       <Checkbox
@@ -370,7 +475,9 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
 
             {/* Notes */}
             <div>
-              <h3 className="text-sm font-medium text-foreground mb-2">Nuty zapachowe</h3>
+              <h3 className="text-sm font-medium text-foreground mb-2">
+                Nuty zapachowe
+              </h3>
               {isEditing ? (
                 <Input
                   value={notes}
@@ -404,6 +511,161 @@ export function PerfumeDetail({ perfume, isReadOnly }: PerfumeDetailProps) {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* COMMENTS SECTION */}
+        <div className="mt-12 border-t border-border pt-8">
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-6">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">
+              Komentarze ({initialComments.length})
+            </h2>
+          </div>
+
+          {/* Add Comment Form */}
+          {currentUserId && (
+            <div className="mb-8 p-4 bg-muted/30 rounded-xl border border-border">
+              <Textarea
+                value={newComment}
+                onChange={(e) => {
+                  setNewComment(e.target.value);
+                  setCommentError(null);
+                }}
+                placeholder="Dodaj komentarz..."
+                rows={3}
+                maxLength={500}
+                disabled={isPending || !canComment}
+                className="mb-3 resize-none"
+              />
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <span className="text-muted-foreground">
+                    {newComment.length}/500 znaków
+                  </span>
+                  <span className="text-muted-foreground ml-4">
+                    • Pozostało{" "}
+                    <span
+                      className={
+                        remainingComments === 0
+                          ? "text-destructive font-medium"
+                          : "text-primary font-medium"
+                      }
+                    >
+                      {remainingComments}/5
+                    </span>{" "}
+                    komentarzy
+                  </span>
+                </div>
+                <Button
+                  onClick={handleAddComment}
+                  disabled={isPending || !newComment.trim() || !canComment}
+                  className="gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  {isPending ? "Wysyłanie..." : "Wyślij"}
+                </Button>
+              </div>
+              {commentError && (
+                <p className="text-sm text-destructive mt-2">{commentError}</p>
+              )}
+              {remainingComments === 0 && (
+                <p className="text-sm text-destructive mt-2">
+                  Osiągnięto limit 5 komentarzy dla tych perfum
+                </p>
+              )}
+            </div>
+          )}
+
+          {!currentUserId && (
+            <div className="mb-8 p-4 bg-muted/30 rounded-xl border border-border text-center">
+              <p className="text-sm text-muted-foreground">
+                Zaloguj się, aby dodać komentarz
+              </p>
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {initialComments.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  Brak komentarzy. Bądź pierwszy!
+                </p>
+              </div>
+            ) : (
+              initialComments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="p-4 bg-card border border-border rounded-xl hover:bg-muted/20 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-10 h-10 border border-border flex-shrink-0">
+                      <AvatarImage
+                        src={comment.user_avatar || "/placeholder.svg"}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                        {comment.user_name?.[0]?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm text-foreground">
+                            {comment.user_name}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            • {formatTimeAgo(comment.created_at)}
+                          </span>
+                        </div>
+
+                        {currentUserId === comment.user_id && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Usunąć komentarz?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Ta akcja nie może zostać cofnięta.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeleteComment(comment.id)
+                                  }
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Usuń
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-foreground leading-relaxed break-words">
+                        {comment.comment}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

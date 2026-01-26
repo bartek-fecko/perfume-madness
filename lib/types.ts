@@ -19,20 +19,6 @@ export interface Perfume {
   user_avatar?: string;
 }
 
-export interface Notification {
-  id: string;
-  user_id: string;
-  type: "new_perfume" | "follow" | "favorite";
-  message: string;
-  related_perfume_id: string | null;
-  from_user_id: string | null;
-  is_read: boolean;
-  created_at: string;
-  from_user_name?: string;
-  from_user_avatar?: string;
-  perfume_name?: string;
-}
-
 export interface UserFollow {
   id: string;
   follower_id: string;
@@ -66,4 +52,63 @@ export interface PerfumeFilters {
   sortBy: SortOption;
   sortDirection: SortDirection;
   viewMode: "my" | "following";
+}
+
+export interface PerfumeComment {
+  id: string;
+  perfume_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  user_name?: string;
+  user_avatar?: string;
+  user_email?: string;
+}
+
+// lib/types.ts - dodaj do istniejących typów
+
+export interface PerfumeComment {
+  id: string;
+  perfume_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  // Pola pobierane dynamicznie z profiles:
+  user_name?: string;
+  user_avatar?: string;
+  user_email?: string;
+}
+
+// lib/types.ts - dodaj do istniejących typów
+
+export interface PerfumeComment {
+  id: string;
+  perfume_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  // Pola pobierane dynamicznie z profiles:
+  user_name?: string;
+  user_avatar?: string;
+  user_email?: string;
+}
+
+// Rozszerz istniejący typ Notification - ZAMIEŃ cały typ
+export interface Notification {
+  id: string;
+  user_id: string;
+  from_user_id?: string;
+  type: "follow" | "new_perfume" | "perfume_deleted" | "new_comment";
+  title: string;
+  message?: string;
+  perfume_id?: string;
+  is_read: boolean;
+  created_at: string;
+  // Dodatkowe pola pobierane dynamicznie:
+  perfume_name?: string;
+  from_user_name?: string;
+  from_user_avatar?: string;
 }
