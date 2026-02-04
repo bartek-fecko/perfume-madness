@@ -445,6 +445,7 @@ export function PerfumeDetail({
                 fill
                 className="object-cover"
                 priority
+                unoptimized
                 quality={90}
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
