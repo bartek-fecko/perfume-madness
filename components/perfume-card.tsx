@@ -60,6 +60,7 @@ export function PerfumeCard({
     is_favorite,
     categories,
   } = perfume;
+console.log({image_url});
 
   return (
     <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/50 bg-card">
