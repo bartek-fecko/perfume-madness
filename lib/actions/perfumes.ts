@@ -509,6 +509,7 @@ export async function getCategoryCounts(
   if (!data) return {};
 
   const counts: Record<string, number> = { All: data.length };
+
   const categories = [
     "Kwiatowe",
     "Drzewne",
@@ -517,6 +518,13 @@ export async function getCategoryCounts(
     "Korzenne",
     "Słodkie",
     "Orientalne",
+    "Aromatyczne",
+    "Skórzane",
+    "Zielone",
+    "Fougère",
+    "Ambrowe",
+    "Piżmowe",
+    "Wodne",
   ];
 
   const categoryMap = new Map<string, number>();

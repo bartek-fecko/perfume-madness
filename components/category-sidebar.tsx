@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react"
+import React from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -12,10 +12,19 @@ import {
   Candy,
   Sparkles,
   LayoutGrid,
+  Leaf,
+  Trees,
+  Droplets,
+  Gem,
+  Waves,
 } from "lucide-react";
 import type { PerfumeCategory } from "@/lib/types";
 
-const categories: { id: PerfumeCategory; name: string; icon: React.ElementType }[] = [
+const categories: {
+  id: PerfumeCategory;
+  name: string;
+  icon: React.ElementType;
+}[] = [
   { id: "All", name: "Wszystkie", icon: LayoutGrid },
   { id: "Kwiatowe", name: "Kwiatowe", icon: Flower2 },
   { id: "Drzewne", name: "Drzewne", icon: TreePine },
@@ -24,6 +33,13 @@ const categories: { id: PerfumeCategory; name: string; icon: React.ElementType }
   { id: "Korzenne", name: "Korzenne", icon: Flame },
   { id: "Słodkie", name: "Słodkie", icon: Candy },
   { id: "Orientalne", name: "Orientalne", icon: Sparkles },
+  { id: "Aromatyczne", name: "Aromatyczne", icon: Leaf },
+  { id: "Skórzane", name: "Skórzane", icon: Gem },
+  { id: "Zielone", name: "Zielone", icon: Trees },
+  { id: "Fougère", name: "Fougère", icon: Droplets },
+  { id: "Ambrowe", name: "Ambrowe", icon: Gem },
+  { id: "Piżmowe", name: "Piżmowe", icon: Sparkles },
+  { id: "Wodne", name: "Wodne", icon: Waves },
 ];
 
 interface CategorySidebarProps {
@@ -58,7 +74,7 @@ export function CategorySidebar({
                     "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
                     isSelected
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                   )}
                 >
                   <Icon
@@ -66,7 +82,7 @@ export function CategorySidebar({
                       "w-4 h-4",
                       isSelected
                         ? "text-sidebar-primary"
-                        : "text-muted-foreground"
+                        : "text-muted-foreground",
                     )}
                   />
                   <span className="font-medium flex-1 text-left">
@@ -77,7 +93,7 @@ export function CategorySidebar({
                       "text-xs px-1.5 py-0.5 rounded-md min-w-[24px] text-center",
                       isSelected
                         ? "bg-sidebar-primary/10 text-sidebar-primary"
-                        : "bg-muted text-muted-foreground"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     {count}

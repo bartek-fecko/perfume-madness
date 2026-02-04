@@ -47,6 +47,13 @@ const allCategories = [
   "Korzenne",
   "Słodkie",
   "Orientalne",
+  "Aromatyczne",
+  "Skórzane",
+  "Zielone",
+  "Fougère",
+  "Ambrowe",
+  "Piżmowe",
+  "Wodne",
 ];
 
 interface PerfumeDetailProps {
@@ -55,6 +62,23 @@ interface PerfumeDetailProps {
   initialComments: PerfumeComment[];
   currentUserId: string | null;
   userCommentCount: number;
+}
+
+// Funkcja do normalizacji URL/BASE64
+function normalizeImageUrl(url?: string) {
+  if (!url) return null;
+  if (url.startsWith("data:image/")) return url;
+
+  // prosty check dla "gołego" Base64 bez prefixu
+  if (/^[A-Za-z0-9+/=]+$/.test(url)) return `data:image/png;base64,${url}`;
+
+  // próba URL
+  try {
+    new URL(url);
+    return url;
+  } catch {
+    return null;
+  }
 }
 
 export function PerfumeDetail({
@@ -74,6 +98,7 @@ export function PerfumeDetail({
   const [brand, setBrand] = useState(perfume.brand);
   const [price, setPrice] = useState(perfume.price.toString());
   const [rating, setRating] = useState(perfume.rating);
+  const [hoverRating, setHoverRating] = useState(0);
   const [description, setDescription] = useState(perfume.description || "");
   const [notes, setNotes] = useState(perfume.notes?.join(", ") || "");
   const [categories, setCategories] = useState<string[]>(
@@ -158,6 +183,89 @@ export function PerfumeDetail({
     );
   };
 
+  const handleStarClick = (value: number) => setRating(value);
+
+  const isValidPreviewUrl =
+    imageUrl?.startsWith("http://") ||
+    imageUrl?.startsWith("https://") ||
+    imageUrl?.startsWith("data:image/");
+
+  const renderStarButton = (starValue: number) => {
+    const displayRating = hoverRating > 0 ? hoverRating : rating;
+    const isFull = displayRating >= starValue;
+    const isHalf = displayRating === starValue - 0.5;
+
+    return (
+      <div key={starValue} className="relative inline-block">
+        <Star className="w-6 h-6 text-gray-300" />
+        <div className="absolute inset-0 flex">
+          <button
+            type="button"
+            onClick={() => handleStarClick(starValue - 0.5)}
+            onMouseEnter={() => setHoverRating(starValue - 0.5)}
+            className="w-1/2 h-full relative overflow-hidden group z-10"
+          >
+            <Star
+              className={cn(
+                "w-6 h-6 absolute left-0 top-0 transition-all",
+                isHalf || isFull
+                  ? "text-amber-400 fill-amber-400"
+                  : "text-transparent group-hover:text-amber-200 group-hover:fill-amber-200",
+              )}
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleStarClick(starValue)}
+            onMouseEnter={() => setHoverRating(starValue)}
+            className="w-1/2 h-full relative overflow-hidden group z-10"
+          >
+            <Star
+              className={cn(
+                "w-6 h-6 absolute right-0 top-0 transition-all",
+                isFull
+                  ? "text-amber-400 fill-amber-400"
+                  : "text-transparent group-hover:text-amber-200 group-hover:fill-amber-200",
+              )}
+            />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDisplayStars = (ratingValue: number) => {
+    return Array.from({ length: 5 }).map((_, i) => {
+      const starValue = i + 1;
+      const isFull = ratingValue >= starValue;
+      const isHalf = ratingValue >= starValue - 0.5 && ratingValue < starValue;
+
+      return (
+        <div key={i} className="relative inline-block">
+          {isHalf ? (
+            <>
+              <Star className="w-5 h-5 text-border" />
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ width: "10px" }}
+              >
+                <Star className="w-5 h-5 text-accent fill-accent" />
+              </div>
+            </>
+          ) : (
+            <Star
+              className={cn(
+                "w-5 h-5",
+                isFull ? "text-accent fill-accent" : "text-border",
+              )}
+            />
+          )}
+        </div>
+      );
+    });
+  };
+
   const handleAddComment = () => {
     if (!newComment.trim() || newComment.length > 500) {
       setCommentError("Komentarz musi mieć od 1 do 500 znaków");
@@ -203,6 +311,8 @@ export function PerfumeDetail({
       month: "short",
     });
   };
+
+  const previewImage = normalizeImageUrl(imageUrl);
 
   return (
     <div className="min-h-screen bg-background">
@@ -289,31 +399,48 @@ export function PerfumeDetail({
         )}
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Image Section */}
+          {/* IMAGE SECTION */}
           <div className="relative aspect-square bg-secondary/30 rounded-2xl overflow-hidden">
             {isEditing ? (
-              <div className="absolute inset-0 p-4">
-                <Input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="URL obrazu"
-                  className="mb-4"
-                />
-                {imageUrl && (
-                  <Image
-                    src={imageUrl || "/placeholder.svg"}
-                    alt={name}
-                    fill
-                    className="object-cover rounded-lg"
-                    loading="lazy"
-                    quality={85}
+              <div className="absolute inset-0 p-4 flex flex-col">
+                <div className="mb-4">
+                  <label className="text-sm font-medium text-foreground mb-2 block">
+                    URL lub Base64 obrazu
+                  </label>
+                  <Input
+                    type="text"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/perfume.jpg lub Base64"
                   />
+                </div>
+                {imageUrl && isValidPreviewUrl ? (
+                  <div className="flex-1 relative rounded-lg overflow-hidden">
+                    <Image
+                      key={imageUrl} // <-- dodaj to
+                      src={imageUrl}
+                      alt={name || "Podgląd"}
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      quality={85}
+                      unoptimized
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
+                    {imageUrl
+                      ? "Wpisz pełny URL lub Base64 zaczynający się od http://, https:// lub data:image/"
+                      : "Wklej URL obrazu powyżej"}
+                  </div>
                 )}
               </div>
             ) : (
               <Image
-                src={perfume.image_url || "/placeholder.svg"}
+                src={normalizeImageUrl(perfume.image_url) || "/placeholder.svg"}
                 alt={`${perfume.name} by ${perfume.brand}`}
                 fill
                 className="object-cover"
@@ -345,8 +472,9 @@ export function PerfumeDetail({
             )}
           </div>
 
-          {/* Details Section */}
+          {/* DETAILS SECTION */}
           <div className="space-y-6">
+            {/* Brand + Name */}
             <div>
               {isEditing ? (
                 <>
@@ -378,61 +506,41 @@ export function PerfumeDetail({
             {/* Rating */}
             <div className="flex items-center gap-2">
               {isEditing ? (
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className="p-0.5"
-                    >
-                      <Star
-                        className={cn(
-                          "w-6 h-6",
-                          star <= rating
-                            ? "text-accent fill-accent"
-                            : "text-border hover:text-accent/50",
-                        )}
-                      />
-                    </button>
-                  ))}
+                <div
+                  className="flex gap-1"
+                  onMouseLeave={() => setHoverRating(0)}
+                >
+                  {[1, 2, 3, 4, 5].map((star) => renderStarButton(star))}
+                  <span className="ml-2 text-muted-foreground">
+                    {rating > 0 ? rating.toFixed(1) : ""}
+                  </span>
                 </div>
               ) : (
                 <>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={cn(
-                        "w-5 h-5",
-                        i < perfume.rating
-                          ? "text-accent fill-accent"
-                          : "text-border",
-                      )}
-                    />
-                  ))}
+                  {renderDisplayStars(perfume.rating)}
+                  <span className="text-muted-foreground ml-1">
+                    {perfume.rating.toFixed(1)}
+                  </span>
                 </>
               )}
-              <span className="text-muted-foreground ml-1">
-                {isEditing ? rating.toFixed(1) : perfume.rating.toFixed(1)}
-              </span>
             </div>
 
             {/* Price */}
             {isEditing ? (
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold">$</span>
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="text-3xl font-bold w-32"
+                  className="text-3xl font-bold w-40"
                 />
+                <span className="text-3xl font-bold">PLN</span>
               </div>
             ) : (
               <p className="text-3xl font-bold text-foreground">
-                ${perfume.price}
+                {perfume.price} PLN
               </p>
             )}
 
@@ -514,7 +622,6 @@ export function PerfumeDetail({
           </div>
         </div>
 
-        {/* COMMENTS SECTION */}
         <div className="mt-12 border-t border-border pt-8">
           {/* Header */}
           <div className="flex items-center gap-2 mb-6">

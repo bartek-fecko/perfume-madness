@@ -27,6 +27,21 @@ interface PerfumeCardProps {
   onDelete?: (id: string) => void;
 }
 
+function isValidImageUrl(url?: string) {
+  if (!url) return false;
+
+  if (url.startsWith("data:image/")) {
+    return true;
+  }
+
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function PerfumeCard({
   perfume,
   isOwner,
@@ -50,15 +65,29 @@ export function PerfumeCard({
     <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/50 bg-card">
       <CardContent className="p-0">
         <div className="relative aspect-[4/3] bg-secondary/30 overflow-hidden">
-          <Image
-            src={image_url || "/placeholder.svg"}
-            alt={`${name} by ${brand}`}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            quality={85}
-          />
+          <div className="relative aspect-[4/3] bg-secondary/30 overflow-hidden">
+            {image_url?.startsWith("data:") ? (
+              <img
+                src={image_url}
+                alt={`${name} by ${brand}`}
+                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            ) : (
+              <Image
+                src={
+                  isValidImageUrl(image_url) ? image_url : "/placeholder.svg"
+                }
+                alt={`${name} by ${brand}`}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                quality={85}
+              />
+            )}
+          </div>
+
           {isOwner && onToggleFavorite && (
             <button
               type="button"
@@ -100,15 +129,34 @@ export function PerfumeCard({
           </Link>
 
           <div className="flex items-center gap-0.5 mt-1.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  "w-3 h-3",
-                  i < rating ? "text-accent fill-accent" : "text-border",
-                )}
-              />
-            ))}
+            {Array.from({ length: 5 }).map((_, i) => {
+              const starValue = i + 1;
+              const isFull = rating >= starValue;
+              const isHalf = rating >= starValue - 0.5 && rating < starValue;
+
+              return (
+                <div key={i} className="relative inline-block">
+                  {isHalf ? (
+                    <>
+                      <Star className="w-3 h-3 text-border" />
+                      <div
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ width: "6px" }}
+                      >
+                        <Star className="w-3 h-3 text-accent fill-accent" />
+                      </div>
+                    </>
+                  ) : (
+                    <Star
+                      className={cn(
+                        "w-3 h-3",
+                        isFull ? "text-accent fill-accent" : "text-border",
+                      )}
+                    />
+                  )}
+                </div>
+              );
+            })}
             <span className="text-[10px] text-muted-foreground ml-1">
               {rating.toFixed(1)}
             </span>
@@ -166,7 +214,7 @@ export function PerfumeCard({
 
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
             <span className="text-base font-semibold text-foreground">
-              ${price}
+              {price} PLN
             </span>
             {!isOwner && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0">
