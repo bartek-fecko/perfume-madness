@@ -316,23 +316,23 @@ export function PerfumeDetail({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors self-start"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Powrót do kolekcji</span>
+            <ArrowLeft className="w-5 h-5 shrink-0" />
+            <span className="text-sm sm:text-base">Powrót do kolekcji</span>
           </button>
 
           {!isReadOnly && !isEditing && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => setIsEditing(true)}
                 variant="outline"
-                className="gap-2 bg-transparent"
+                className="gap-2 bg-transparent flex-1 sm:flex-none"
               >
                 <Edit2 className="w-4 h-4" />
                 Edytuj
@@ -341,7 +341,7 @@ export function PerfumeDetail({
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="gap-2 text-destructive hover:text-destructive bg-transparent"
+                    className="gap-2 text-destructive hover:text-destructive bg-transparent flex-1 sm:flex-none"
                   >
                     <Trash2 className="w-4 h-4" />
                     Usuń
@@ -370,11 +370,11 @@ export function PerfumeDetail({
           )}
 
           {isEditing && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={handleCancel}
                 variant="outline"
-                className="gap-2 bg-transparent"
+                className="gap-2 bg-transparent flex-1 sm:flex-none"
                 disabled={isPending}
               >
                 <X className="w-4 h-4" />
@@ -382,7 +382,7 @@ export function PerfumeDetail({
               </Button>
               <Button
                 onClick={handleSave}
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-none"
                 disabled={isPending}
               >
                 <Save className="w-4 h-4" />
@@ -398,7 +398,7 @@ export function PerfumeDetail({
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8">
           {/* IMAGE SECTION */}
           <div className="relative aspect-square bg-secondary/30 rounded-2xl overflow-hidden">
             {isEditing ? (
@@ -497,7 +497,7 @@ export function PerfumeDetail({
                   <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {perfume.brand}
                   </p>
-                  <h1 className="text-3xl font-semibold text-foreground mt-1">
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mt-1">
                     {perfume.name}
                   </h1>
                 </>
@@ -540,7 +540,7 @@ export function PerfumeDetail({
                 <span className="text-3xl font-bold">PLN</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-foreground">
+              <p className="text-2xl sm:text-3xl font-bold text-foreground">
                 {perfume.price} PLN
               </p>
             )}
@@ -623,7 +623,7 @@ export function PerfumeDetail({
           </div>
         </div>
 
-        <div className="mt-12 border-t border-border pt-8">
+        <div className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8">
           {/* Header */}
           <div className="flex items-center gap-2 mb-6">
             <MessageSquare className="w-5 h-5 text-primary" />
@@ -647,13 +647,16 @@ export function PerfumeDetail({
                 disabled={isPending || !canComment}
                 className="mb-3 resize-none"
               />
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <span className="text-muted-foreground">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs sm:text-sm space-y-1 sm:space-y-0">
+                  <span className="text-muted-foreground block sm:inline">
                     {newComment.length}/500 znaków
                   </span>
-                  <span className="text-muted-foreground ml-4">
-                    • Pozostało{" "}
+                  <span className="text-muted-foreground hidden sm:inline sm:ml-4">
+                    •
+                  </span>
+                  <span className="text-muted-foreground block sm:inline sm:ml-4">
+                    Pozostało{" "}
                     <span
                       className={
                         remainingComments === 0
@@ -669,7 +672,7 @@ export function PerfumeDetail({
                 <Button
                   onClick={handleAddComment}
                   disabled={isPending || !newComment.trim() || !canComment}
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
                   <Send className="w-4 h-4" />
                   {isPending ? "Wysyłanie..." : "Wyślij"}

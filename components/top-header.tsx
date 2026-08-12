@@ -353,9 +353,9 @@ export function TopHeader({ user }: TopHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border h-20 px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 rounded-full overflow-hidden mx-auto bg-primary/10">
+    <header className="sticky top-0 z-50 bg-card border-b border-border h-14 sm:h-16 md:h-20 px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
+        <div className="relative w-9 h-9 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full overflow-hidden shrink-0 bg-primary/10">
           <Image
             src="/logo.jpg"
             alt="PerfumeMadness logo"
@@ -363,15 +363,15 @@ export function TopHeader({ user }: TopHeaderProps) {
             className="object-contain"
           />
         </div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">
+        <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">
           PerfumeMadness
         </h1>
-        <span className="text-xs text-muted-foreground hidden sm:inline">
+        <span className="text-xs text-muted-foreground hidden lg:inline shrink-0">
           Twoja kolekcja perfum
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {user ? (
           <>
             {/* Notifications */}
@@ -393,7 +393,7 @@ export function TopHeader({ user }: TopHeaderProps) {
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-96 p-0">
+              <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 p-0">
                 <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
                   <h3 className="font-semibold text-sm">Powiadomienia</h3>
                   {unreadCount > 0 && (
@@ -493,10 +493,11 @@ export function TopHeader({ user }: TopHeaderProps) {
             variant="outline"
             size="sm"
             onClick={handleGoogleSignIn}
-            className="gap-2 bg-transparent"
+            className="gap-1.5 sm:gap-2 bg-transparent text-xs sm:text-sm px-2 sm:px-3"
           >
-            <LogIn className="w-4 h-4" />
-            Zaloguj się przez Google
+            <LogIn className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">Zaloguj się przez Google</span>
+            <span className="sm:hidden">Zaloguj</span>
           </Button>
         )}
       </div>

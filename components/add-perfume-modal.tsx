@@ -174,7 +174,7 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Dodaj nowe perfumy</DialogTitle>
         </DialogHeader>
@@ -210,7 +210,7 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nazwa perfum *</Label>
               <Input
@@ -239,7 +239,7 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Cena (PLN) *</Label>
               <Input

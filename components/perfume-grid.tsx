@@ -1,9 +1,19 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PerfumeCard } from "./perfume-card";
 import { toggleFavorite, deletePerfume } from "@/lib/actions/perfumes";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Perfume } from "@/lib/types";
 
 interface PerfumeGridProps {
@@ -15,48 +25,53 @@ export function PerfumeGrid({ perfumes, isOwner }: PerfumeGridProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticPerfumes, setOptimisticPerfumes] = useState(perfumes);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const deleteTarget =
+    optimisticPerfumes.find((p) => p.id === deleteId) ?? null;
 
-  // Update optimistic perfumes when props change
   useEffect(() => {
     setOptimisticPerfumes(perfumes);
   }, [perfumes]);
 
-  const handleToggleFavorite = async (id: string) => {
-    // Optimistic update
+  const handleToggleFavorite = useCallback((id: string) => {
     setOptimisticPerfumes((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, is_favorite: !p.is_favorite } : p
-      )
+        p.id === id ? { ...p, is_favorite: !p.is_favorite } : p,
+      ),
     );
 
     startTransition(async () => {
       const result = await toggleFavorite(id);
       if (!result.success) {
-        // Revert on error
         setOptimisticPerfumes((prev) =>
           prev.map((p) =>
-            p.id === id ? { ...p, is_favorite: !p.is_favorite } : p
-          )
+            p.id === id ? { ...p, is_favorite: !p.is_favorite } : p,
+          ),
         );
       }
     });
-  };
+  }, []);
 
-  const handleDelete = async (id: string) => {
-    // Optimistic update
+  const handleDeleteRequest = useCallback((id: string) => {
+    setDeleteId(id);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!deleteId) return;
+
+    const id = deleteId;
+    setDeleteId(null);
     setOptimisticPerfumes((prev) => prev.filter((p) => p.id !== id));
 
     startTransition(async () => {
       const result = await deletePerfume(id);
       if (!result.success) {
-        // Revert on error
         setOptimisticPerfumes(perfumes);
       } else {
-        // Refresh the page to update the list
         router.refresh();
       }
     });
-  };
+  }, [deleteId, perfumes, router]);
 
   if (optimisticPerfumes.length === 0) {
     return (
@@ -91,18 +106,44 @@ export function PerfumeGrid({ perfumes, isOwner }: PerfumeGridProps) {
   }
 
   return (
-    <div
-      className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${isPending ? "opacity-70" : ""}`}
-    >
-      {optimisticPerfumes.map((perfume) => (
-        <PerfumeCard
-          key={perfume.id}
-          perfume={perfume}
-          isOwner={isOwner}
-          onToggleFavorite={handleToggleFavorite}
-          onDelete={handleDelete}
-        />
-      ))}
-    </div>
+    <>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${isPending ? "opacity-70" : ""}`}
+      >
+        {optimisticPerfumes.map((perfume) => (
+          <PerfumeCard
+            key={perfume.id}
+            perfume={perfume}
+            isOwner={isOwner}
+            onToggleFavorite={isOwner ? handleToggleFavorite : undefined}
+            onDelete={isOwner ? handleDeleteRequest : undefined}
+          />
+        ))}
+      </div>
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Usunąć perfumy?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ta akcja nie może zostać cofnięta. To trwale usunie &quot;
+              {deleteTarget?.name}&quot; z Twojej kolekcji.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Usuń
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

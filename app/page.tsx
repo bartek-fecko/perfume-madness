@@ -63,7 +63,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     } else if (selectedUserId) {
       // TRYB: Kolekcja wybranego użytkownika
       console.log("👤 Loading user collection:", selectedUserId);
-      [perfumes, selectedUserProfile, categoryCounts] = await Promise.all([
+      [perfumes, selectedUserProfile, categoryCounts, favorites] = await Promise.all([
         getUserPerfumes(selectedUserId, {
           category,
           search,
@@ -71,7 +71,8 @@ export default async function HomePage({ searchParams }: PageProps) {
           sortDirection,
         }),
         getUserProfile(selectedUserId),
-        getCategoryCounts(selectedUserId), // Policz kategorie dla wybranego użytkownika
+        getCategoryCounts(selectedUserId),
+        getPerfumes({ userId: selectedUserId, favoritesOnly: true }),
       ]);
     } else {
       // TRYB: Lista użytkowników do eksploracji
@@ -82,10 +83,10 @@ export default async function HomePage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-dvh sm:h-screen bg-background flex flex-col min-h-0">
       <TopHeader user={user} />
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent
             user={user}
@@ -110,7 +111,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 function DashboardSkeleton() {
   return (
     <div className="flex h-full">
-      <aside className="w-52 shrink-0 bg-sidebar border-r border-sidebar-border p-3 pt-5 h-full overflow-y-auto">
+      <aside className="hidden md:block w-52 shrink-0 bg-sidebar border-r border-sidebar-border p-3 pt-5 h-full overflow-y-auto">
         <div className="h-4 w-20 bg-muted rounded animate-pulse mb-4" />
         {Array.from({ length: 8 }).map((_, i) => (
           <div
@@ -119,7 +120,7 @@ function DashboardSkeleton() {
           />
         ))}
       </aside>
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 px-3 pb-3 sm:px-4 sm:pb-4 md:px-6 md:pb-6 overflow-y-auto">
         <div className="h-10 w-full max-w-md bg-muted rounded animate-pulse mb-4" />
         <div className="h-10 w-64 bg-muted rounded animate-pulse mb-6" />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">

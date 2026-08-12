@@ -9,6 +9,17 @@ import type {
   SortDirection,
 } from "@/lib/types";
 
+function applyNameBrandSearch<T extends { or: (filters: string) => T }>(
+  query: T,
+  search?: string,
+): T {
+  const term = search?.trim();
+  if (!term) return query;
+
+  const escaped = term.replace(/[%_,().\\]/g, "\\$&");
+  return query.or(`name.ilike.%${escaped}%,brand.ilike.%${escaped}%`);
+}
+
 export async function createPerfume(perfume: {
   name: string;
   brand: string;
@@ -131,9 +142,7 @@ export async function getPerfumes(options: {
   }
 
   if (options.search) {
-    query = query.or(
-      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%,notes.cs.{${options.search}}`,
-    );
+    query = applyNameBrandSearch(query, options.search);
   }
 
   if (options.favoritesOnly) {
@@ -237,9 +246,7 @@ export async function getFollowingPerfumes(options: {
   }
 
   if (options.search) {
-    query = query.or(
-      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%`,
-    );
+    query = applyNameBrandSearch(query, options.search);
   }
 
   const sortBy = options.sortBy || "created_at";
@@ -274,9 +281,7 @@ export async function getUserPerfumes(
   }
 
   if (options.search) {
-    query = query.or(
-      `name.ilike.%${options.search}%,brand.ilike.%${options.search}%`,
-    );
+    query = applyNameBrandSearch(query, options.search);
   }
 
   const sortBy = options.sortBy || "created_at";

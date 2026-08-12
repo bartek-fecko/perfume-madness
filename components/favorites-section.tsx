@@ -7,14 +7,15 @@ import type { Perfume } from "@/lib/types";
 
 interface FavoritesSectionProps {
   favorites: Perfume[];
+  readOnly?: boolean;
 }
 
-export function FavoritesSection({ favorites }: FavoritesSectionProps) {
+export function FavoritesSection({ favorites, readOnly = false }: FavoritesSectionProps) {
   if (favorites.length === 0) return null;
 
   return (
-    <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-0 mt-4">
-      <CardContent className="p-5">
+    <Card className="border-accent/20 bg-accent/5 p-0 mt-2 sm:mt-4">
+      <CardContent className="p-3 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-full bg-accent/10">
@@ -30,7 +31,7 @@ export function FavoritesSection({ favorites }: FavoritesSectionProps) {
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
           {favorites.slice(0, 5).map((perfume) => (
             <Link
-              href={`/perfume/${perfume.id}`}
+              href={`/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`}
               key={perfume.id}
               className={cn(
                 "shrink-0 flex items-center gap-3 px-3 py-2 rounded-lg bg-card border border-border/50",

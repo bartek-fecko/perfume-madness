@@ -1,22 +1,12 @@
 "use client";
 
+import { memo, useState, useTransition, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import type { Perfume } from "@/lib/types";
 
@@ -27,12 +17,9 @@ interface PerfumeCardProps {
   onDelete?: (id: string) => void;
 }
 
-function isValidImageUrl(url?: string) {
+function isValidImageUrl(url?: string | null) {
   if (!url) return false;
-
-  if (url.startsWith("data:image/")) {
-    return true;
-  }
+  if (url.startsWith("data:image/")) return true;
 
   try {
     new URL(url);
@@ -42,7 +29,45 @@ function isValidImageUrl(url?: string) {
   }
 }
 
-export function PerfumeCard({
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5 mt-1.5">
+      {Array.from({ length: 5 }).map((_, i) => {
+        const starValue = i + 1;
+        const isFull = rating >= starValue;
+        const isHalf = rating >= starValue - 0.5 && rating < starValue;
+
+        return (
+          <div key={i} className="relative inline-block">
+            {isHalf ? (
+              <>
+                <Star className="w-3 h-3 text-border" />
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ width: "6px" }}
+                >
+                  <Star className="w-3 h-3 text-accent fill-accent" />
+                </div>
+              </>
+            ) : (
+              <Star
+                className={cn(
+                  "w-3 h-3",
+                  isFull ? "text-accent fill-accent" : "text-border",
+                )}
+              />
+            )}
+          </div>
+        );
+      })}
+      <span className="text-[10px] text-muted-foreground ml-1">
+        {rating.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
+export const PerfumeCard = memo(function PerfumeCard({
   perfume,
   isOwner,
   onToggleFavorite,
@@ -61,33 +86,32 @@ export function PerfumeCard({
     categories,
   } = perfume;
 
+  const imageSrc = isValidImageUrl(image_url) ? image_url! : "/placeholder.svg";
+  const isDataUrl = image_url?.startsWith("data:") ?? false;
+
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/50 bg-card">
+    <Card className="group relative overflow-hidden border-border/50 bg-card [content-visibility:auto] [contain-intrinsic-size:auto_320px]">
       <CardContent className="p-0">
         <div className="relative aspect-[4/3] bg-secondary/30 overflow-hidden">
-          <div className="relative aspect-[4/3] bg-secondary/30 overflow-hidden">
-            {image_url?.startsWith("data:") ? (
-              <img
-                src={image_url}
-                alt={`${name} by ${brand}`}
-                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
-            ) : (
-              <Image
-                src={
-                  isValidImageUrl(image_url) ? image_url : "/placeholder.svg"
-                }
-                alt={`${name} by ${brand}`}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-                unoptimized
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                quality={85}
-              />
-            )}
-          </div>
+          {isDataUrl ? (
+            <img
+              src={image_url!}
+              alt={`${name} by ${brand}`}
+              className="object-cover w-full h-full"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <Image
+              src={imageSrc}
+              alt={`${name} by ${brand}`}
+              fill
+              className="object-cover"
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              quality={60}
+            />
+          )}
 
           {isOwner && onToggleFavorite && (
             <button
@@ -97,10 +121,8 @@ export function PerfumeCard({
                 onToggleFavorite(id);
               }}
               className={cn(
-                "absolute top-2 right-2 p-1.5 rounded-full transition-all duration-200 bg-card/80 backdrop-blur-sm",
-                is_favorite
-                  ? "text-accent"
-                  : "text-muted-foreground hover:text-accent",
+                "absolute top-2 right-2 p-1.5 rounded-full bg-card/95 text-muted-foreground",
+                is_favorite && "text-accent",
               )}
               aria-label={
                 is_favorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"
@@ -110,7 +132,7 @@ export function PerfumeCard({
             </button>
           )}
           {!isOwner && is_favorite && (
-            <div className="absolute top-2 right-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm text-accent">
+            <div className="absolute top-2 right-2 p-1.5 rounded-full bg-card/95 text-accent">
               <Star className="w-4 h-4 fill-current" />
             </div>
           )}
@@ -124,44 +146,12 @@ export function PerfumeCard({
             href={`/perfume/${id}${!isOwner ? "?readonly=true" : ""}`}
             className="block"
           >
-            <h3 className="font-semibold text-foreground text-sm leading-tight truncate hover:text-primary transition-colors">
+            <h3 className="font-semibold text-foreground text-sm leading-tight truncate">
               {name}
             </h3>
           </Link>
 
-          <div className="flex items-center gap-0.5 mt-1.5">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const starValue = i + 1;
-              const isFull = rating >= starValue;
-              const isHalf = rating >= starValue - 0.5 && rating < starValue;
-
-              return (
-                <div key={i} className="relative inline-block">
-                  {isHalf ? (
-                    <>
-                      <Star className="w-3 h-3 text-border" />
-                      <div
-                        className="absolute inset-0 overflow-hidden"
-                        style={{ width: "6px" }}
-                      >
-                        <Star className="w-3 h-3 text-accent fill-accent" />
-                      </div>
-                    </>
-                  ) : (
-                    <Star
-                      className={cn(
-                        "w-3 h-3",
-                        isFull ? "text-accent fill-accent" : "text-border",
-                      )}
-                    />
-                  )}
-                </div>
-              );
-            })}
-            <span className="text-[10px] text-muted-foreground ml-1">
-              {rating.toFixed(1)}
-            </span>
-          </div>
+          <StarRating rating={rating} />
 
           {description && (
             <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
@@ -226,40 +216,19 @@ export function PerfumeCard({
 
           {isOwner && onDelete && (
             <div className="mt-2 -mb-3">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-7 text-xs"
-                  >
-                    <Trash2 className="w-3 h-3 mr-1.5" />
-                    Usuń
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Usunąć perfumy?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Ta akcja nie może zostać cofnięta. To trwale usunie &quot;
-                      {name}&quot; z Twojej kolekcji.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(id)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Usuń
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-7 text-xs"
+                onClick={() => onDelete(id)}
+              >
+                <Trash2 className="w-3 h-3 mr-1.5" />
+                Usuń
+              </Button>
             </div>
           )}
         </div>
       </CardContent>
     </Card>
   );
-}
+});

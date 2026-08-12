@@ -32,7 +32,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h2 className="mt-4 text-2xl font-bold text-foreground mb-2">
+        <h2 className="mt-2 sm:mt-4 text-xl sm:text-2xl font-bold text-foreground mb-2">
           Eksploruj użytkowników
         </h2>
         <p className="text-muted-foreground">
@@ -66,7 +66,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className="group relative bg-card border border-border rounded-xl p-5 hover:shadow-lg hover:border-primary/50 transition-all"
+            className="group relative bg-card border border-border rounded-xl p-5 md:hover:shadow-lg md:hover:border-primary/50"
           >
             <div className="flex items-start gap-4">
               {/* Avatar */}
