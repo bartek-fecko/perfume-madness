@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Upload, Star, StarHalf } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { createPerfume } from "@/lib/actions/perfumes";
+import { createPerfume, getUserBrands } from "@/lib/actions/perfumes";
+import { BrandCombobox } from "@/components/brand-combobox";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -54,6 +55,18 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    getUserBrands().then((brands) => {
+      if (!cancelled) setBrandOptions(brands);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
@@ -226,12 +239,17 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="brand">Marka *</Label>
-              <Input
-                id="brand"
+              <BrandCombobox
                 value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                placeholder="np. Chanel"
-                className={errors.brand ? "border-destructive" : ""}
+                onChange={(newBrand) => {
+                  setBrand(newBrand);
+                  setErrors((prev) => {
+                    const { brand: _brand, ...rest } = prev;
+                    return rest;
+                  });
+                }}
+                brands={brandOptions}
+                hasError={!!errors.brand}
               />
               {errors.brand && (
                 <p className="text-xs text-destructive">{errors.brand}</p>

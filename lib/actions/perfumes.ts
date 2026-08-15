@@ -2,6 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
   Perfume,
   PerfumeCategory,
@@ -550,4 +551,40 @@ export async function getCategoryCounts(
   });
 
   return counts;
+}
+
+// Zwraca listę unikalnych marek z kolekcji zalogowanego użytkownika
+// (do podpowiedzi w formularzu dodawania perfum). Marka pojawia się tu
+// dopiero po dodaniu przynajmniej jednych perfum z tą marką - nie ma
+// osobnej tabeli "brands", marki są wyprowadzane z istniejących perfum.
+export async function getUserBrands(): Promise<string[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("perfumes")
+    .select("brand")
+    .eq("user_id", user.id);
+
+  if (error || !data) {
+    console.error("Error fetching user brands:", error);
+    return [];
+  }
+
+  const brandsByKey = new Map<string, string>();
+  for (const row of data) {
+    if (!row.brand) continue;
+    const key = brandGroupKey(row.brand);
+    if (!brandsByKey.has(key)) {
+      brandsByKey.set(key, prettifyBrandName(row.brand));
+    }
+  }
+
+  return Array.from(brandsByKey.values()).sort((a, b) =>
+    a.localeCompare(b, "pl"),
+  );
 }
