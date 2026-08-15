@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   Bell,
   LogIn,
+  Search,
   User,
   Sparkles,
   Trash2,
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -31,14 +33,30 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "@/lib/actions/notifications";
+import {
+  FilterToolbar,
+  type FilterToolbarProps,
+} from "@/components/search-header";
 import type { User as UserType, Notification } from "@/lib/types";
 import Image from "next/image";
 
-interface TopHeaderProps {
+interface SiteHeaderProps {
   user: UserType | null;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  filterToolbar?: FilterToolbarProps;
+  hideSearch?: boolean;
+  innerClass?: string;
 }
 
-export function TopHeader({ user }: TopHeaderProps) {
+export function SiteHeader({
+  user,
+  searchQuery,
+  onSearchChange,
+  filterToolbar,
+  hideSearch = false,
+  innerClass = "max-w-[1600px]",
+}: SiteHeaderProps) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -353,154 +371,195 @@ export function TopHeader({ user }: TopHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border h-14 sm:h-16 md:h-20 px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
-        <div className="relative w-9 h-9 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full overflow-hidden shrink-0 bg-primary/10">
-          <Image
-            src="/logo.jpg"
-            alt="PerfumeMadness logo"
-            fill
-            className="object-contain"
-          />
+    <header className="sticky top-0 z-50 bg-card border-b border-border">
+      <div className={`h-14 px-3 sm:px-6 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3 w-full ${innerClass} mx-auto`}>
+        <div className="flex items-center gap-2.5 min-w-0 justify-self-start">
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-border bg-white shrink-0">
+            <Image
+              src="/logo.jpg"
+              alt="PerfumeMadness logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="leading-tight min-w-0">
+            <h1 className="text-sm font-bold text-foreground tracking-tight truncate">
+              PerfumeMadness
+            </h1>
+            <p className="text-[10px] text-muted-foreground truncate hidden sm:block">
+              Twoja kolekcja perfum
+            </p>
+          </div>
         </div>
-        <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">
-          PerfumeMadness
-        </h1>
-        <span className="text-xs text-muted-foreground hidden lg:inline shrink-0">
-          Twoja kolekcja perfum
-        </span>
-      </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {user ? (
-          <>
-            {/* Notifications */}
-            <Popover
-              open={isNotificationsOpen}
-              onOpenChange={setIsNotificationsOpen}
-            >
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
-                  aria-label="Notifications"
-                >
-                  <Bell className="w-5 h-5 text-muted-foreground" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-medium rounded-full flex items-center justify-center animate-pulse">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 p-0">
-                <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
-                  <h3 className="font-semibold text-sm">Powiadomienia</h3>
-                  {unreadCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleMarkAllAsRead}
-                      className="text-xs text-primary hover:underline font-medium"
-                    >
-                      Oznacz wszystkie
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-[32rem] overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Brak powiadomień
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 mt-1">
-                        Tutaj zobaczysz nowe perfumy i obserwujących
-                      </p>
-                    </div>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`w-full text-left p-4 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-all duration-200 ${
-                          !notification.is_read
-                            ? "bg-primary/5 border-l-2 border-l-primary"
-                            : ""
-                        }`}
+        <div className="justify-self-center">
+          {!hideSearch && user && (
+            <div className="hidden lg:flex items-center justify-center gap-2 min-w-0">
+              <div className="relative w-full max-w-md min-w-0">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Szukaj perfum lub marek…"
+                  className="pl-8 h-9 bg-background text-sm"
+                />
+              </div>
+
+              {filterToolbar && <FilterToolbar {...filterToolbar} />}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0 justify-self-end">
+          {user ? (
+            <>
+              {/* Notifications */}
+              <Popover
+                open={isNotificationsOpen}
+                onOpenChange={setIsNotificationsOpen}
+              >
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="w-5 h-5 text-muted-foreground" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-medium rounded-full flex items-center justify-center animate-pulse">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 p-0">
+                  <div className="flex items-center justify-between p-3 border-b border-border bg-muted/50">
+                    <h3 className="font-semibold text-sm">Powiadomienia</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAllAsRead}
+                        className="text-xs text-primary hover:underline font-medium"
                       >
-                        {/* Oznacz jako przeczytane po najechaniu jeśli nieprzeczytana */}
-                        <div
-                          onMouseEnter={() =>
-                            !notification.is_read &&
-                            handleMarkAsRead(notification.id)
-                          }
-                        >
-                          {renderNotificationContent(notification)}
-                          <p className="text-xs text-muted-foreground/70 mt-2 pl-9">
-                            {new Date(
-                              notification.created_at,
-                            ).toLocaleDateString("pl-PL", {
-                              day: "numeric",
-                              month: "long",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
+                        Oznacz wszystkie
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-[32rem] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Brak powiadomień
+                        </p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">
+                          Tutaj zobaczysz nowe perfumy i obserwujących
+                        </p>
                       </div>
-                    ))
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`w-full text-left p-4 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-all duration-200 ${
+                            !notification.is_read
+                              ? "bg-primary/5 border-l-2 border-l-primary"
+                              : ""
+                          }`}
+                        >
+                          {/* Oznacz jako przeczytane po najechaniu jeśli nieprzeczytana */}
+                          <div
+                            onMouseEnter={() =>
+                              !notification.is_read &&
+                              handleMarkAsRead(notification.id)
+                            }
+                          >
+                            {renderNotificationContent(notification)}
+                            <p className="text-xs text-muted-foreground/70 mt-2 pl-9">
+                              {new Date(
+                                notification.created_at,
+                              ).toLocaleDateString("pl-PL", {
+                                day: "numeric",
+                                month: "long",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary transition-colors"
-                >
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage
-                      src={user.avatar_url || "/placeholder.svg"}
-                      alt={user.name || "User"}
-                    />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-foreground max-w-[120px] truncate hidden sm:inline">
-                    {user.name || user.email}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  disabled
-                  className="text-xs text-muted-foreground"
-                >
-                  {user.email}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  Wyloguj się
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleGoogleSignIn}
-            className="gap-1.5 sm:gap-2 bg-transparent text-xs sm:text-sm px-2 sm:px-3"
-          >
-            <LogIn className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">Zaloguj się przez Google</span>
-            <span className="sm:hidden">Zaloguj</span>
-          </Button>
-        )}
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage
+                        src={user.avatar_url || "/placeholder.svg"}
+                        alt={user.name || "User"}
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-foreground max-w-[120px] truncate hidden sm:inline">
+                      {user.name || user.email}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    disabled
+                    className="text-xs text-muted-foreground"
+                  >
+                    {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    Wyloguj się
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGoogleSignIn}
+              className="gap-1.5 bg-transparent"
+            >
+              <LogIn className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Zaloguj się przez Google</span>
+              <span className="sm:hidden">Zaloguj</span>
+            </Button>
+          )}
+        </div>
       </div>
+
+      {!hideSearch && user && (
+        <div className={`lg:hidden px-3 pb-2.5 w-full ${innerClass} mx-auto`}>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Szukaj perfum lub marek…"
+              className="pl-8 h-9 bg-background text-sm"
+            />
+          </div>
+          {filterToolbar && (
+            <div className="mt-2">
+              <FilterToolbar {...filterToolbar} />
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }

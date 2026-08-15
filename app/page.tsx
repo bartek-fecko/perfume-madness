@@ -8,7 +8,6 @@ import {
   getCategoryCounts,
   getBrandPositions,
 } from "@/lib/actions/perfumes";
-import { TopHeader } from "@/components/top-header";
 import { DashboardContent } from "@/components/dashboard-content";
 import type {
   PerfumeCategory,
@@ -52,13 +51,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       // TRYB: Moja kolekcja
       console.log("📦 Loading MY collection");
       [perfumes, categoryCounts, favorites, brandOrder] = await Promise.all([
-        getPerfumes({
-          userId: user.id,
-          category,
-          search,
-          sortBy,
-          sortDirection,
-        }),
+        getPerfumes({ userId: user.id }),
         getCategoryCounts(user.id),
         getPerfumes({ userId: user.id, favoritesOnly: true }),
         getBrandPositions(user.id),
@@ -68,12 +61,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       console.log("👤 Loading user collection:", selectedUserId);
       [perfumes, selectedUserProfile, categoryCounts, favorites, brandOrder] =
         await Promise.all([
-          getUserPerfumes(selectedUserId, {
-            category,
-            search,
-            sortBy,
-            sortDirection,
-          }),
+          getUserPerfumes(selectedUserId, {}),
           getUserProfile(selectedUserId),
           getCategoryCounts(selectedUserId),
           getPerfumes({ userId: selectedUserId, favoritesOnly: true }),
@@ -88,53 +76,54 @@ export default async function HomePage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="h-dvh sm:h-screen bg-background flex flex-col min-h-0">
-      <TopHeader user={user} />
-
-      <div className="flex-1 min-h-0">
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardContent
-            user={user}
-            initialPerfumes={perfumes}
-            initialFavorites={favorites}
-            initialCategoryCounts={categoryCounts}
-            initialCategory={category}
-            initialSearch={search}
-            initialSortBy={sortBy}
-            initialSortDirection={sortDirection}
-            initialViewMode={viewMode}
-            initialUsers={users}
-            selectedUserId={selectedUserId}
-            selectedUserProfile={selectedUserProfile}
-            initialBrandOrder={brandOrder}
-          />
-        </Suspense>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent
+          user={user}
+          initialPerfumes={perfumes}
+          initialFavorites={favorites}
+          initialCategoryCounts={categoryCounts}
+          initialCategory={category}
+          initialSearch={search}
+          initialSortBy={sortBy}
+          initialSortDirection={sortDirection}
+          initialViewMode={viewMode}
+          initialUsers={users}
+          selectedUserId={selectedUserId}
+          selectedUserProfile={selectedUserProfile}
+          initialBrandOrder={brandOrder}
+        />
+      </Suspense>
     </div>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="flex h-full">
-      <aside className="hidden md:block w-52 shrink-0 bg-sidebar border-r border-sidebar-border p-3 pt-5 h-full overflow-y-auto">
-        <div className="h-4 w-20 bg-muted rounded animate-pulse mb-4" />
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-10 bg-muted rounded-lg animate-pulse mb-1"
-          />
-        ))}
-      </aside>
-      <main className="flex-1 px-3 pb-3 sm:px-4 sm:pb-4 md:px-6 md:pb-6 overflow-y-auto">
-        <div className="h-10 w-full max-w-md bg-muted rounded animate-pulse mb-4" />
-        <div className="h-10 w-64 bg-muted rounded animate-pulse mb-6" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-80 bg-muted rounded-xl animate-pulse" />
-          ))}
-        </div>
-      </main>
+    <div className="min-h-screen">
+      <div className="h-14 shrink-0 bg-card border-b border-border sticky top-0 z-50" />
+      <div className="flex w-full max-w-[1600px] mx-auto">
+        <aside className="hidden md:block w-56 shrink-0 p-2 pt-3 sticky top-[3.5625rem] self-start h-[calc(100vh-3.5625rem)]">
+            <div className="flex flex-col h-full bg-card border border-border/70 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-3">
+              <div className="h-4 w-24 bg-muted rounded animate-pulse mb-3" />
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-7 bg-muted rounded-lg animate-pulse mb-1.5"
+                />
+              ))}
+            </div>
+          </aside>
+          <main className="flex-1 min-w-0 px-3 pb-4 sm:px-4 sm:pb-5 pt-3 sm:pt-4">
+            <div className="h-9 w-full bg-card border border-border/70 rounded-lg animate-pulse mb-3" />
+            <div className="h-20 w-full bg-card border border-border/70 rounded-lg animate-pulse mb-3" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="aspect-[3/4] bg-muted rounded-lg animate-pulse" />
+              ))}
+            </div>
+          </main>
+      </div>
     </div>
   );
 }

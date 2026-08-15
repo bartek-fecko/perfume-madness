@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useTransition, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useTransition,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
 import { CategorySidebar, CategoryNav } from "@/components/category-sidebar";
 import {
@@ -9,8 +16,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { SearchHeader, FilterToolbar } from "@/components/search-header";
+import { SiteHeader } from "@/components/site-header";
 import { FavoritesSection } from "@/components/favorites-section";
+import { CollectionStats } from "@/components/collection-stats";
 import { PerfumeGrid } from "@/components/perfume-grid";
 import { AddPerfumeModal } from "@/components/add-perfume-modal";
 import { UsersExplorer } from "@/components/users-explorer";
@@ -45,6 +53,50 @@ interface DashboardContentProps {
     avatar_url?: string;
     is_following: boolean;
   } | null;
+}
+
+function perfumeCountLabel(count: number) {
+  return `${count} ${count === 1 ? "perfumy" : count < 5 ? "perfumy" : "perfum"}`;
+}
+
+interface ViewTabsProps {
+  activeTab: "my" | "explore";
+  onChange: (tab: "my" | "explore") => void;
+  rightLabel: string;
+}
+
+function ViewTabs({ activeTab, onChange, rightLabel }: ViewTabsProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 mb-3">
+      <div className="flex gap-1 p-1 bg-card border border-border/70 rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.04)]">
+        <button
+          type="button"
+          onClick={() => onChange("my")}
+          className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            activeTab === "my"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Moje perfumy
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange("explore")}
+          className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            activeTab === "explore"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Użytkownicy
+        </button>
+      </div>
+      <span className="text-sm text-muted-foreground whitespace-nowrap">
+        {rightLabel}
+      </span>
+    </div>
+  );
 }
 
 export function DashboardContent({
@@ -205,6 +257,51 @@ export function DashboardContent({
   const isOwner = viewMode === "my";
   const showFilters = viewMode === "my" || !!selectedUserId;
 
+  // Filtrowanie i sortowanie w całości po stronie klienta — natychmiastowe
+  const filteredPerfumes = useMemo(() => {
+    let list = [...initialPerfumes];
+
+    if (category && category !== "All") {
+      list = list.filter(
+        (p) => Array.isArray(p.categories) && p.categories.includes(category),
+      );
+    }
+
+    const term = search.trim().toLowerCase();
+    if (term) {
+      list = list.filter(
+        (p) =>
+          (p.name || "").toLowerCase().includes(term) ||
+          (p.brand || "").toLowerCase().includes(term),
+      );
+    }
+
+    const sorted = [...list];
+    switch (sortBy) {
+      case "name":
+        sorted.sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "", "pl"),
+        );
+        break;
+      case "price":
+        sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "rating":
+        sorted.sort(
+          (a, b) => (Number(a.rating) || 0) - (Number(b.rating) || 0),
+        );
+        break;
+      default:
+        sorted.sort(
+          (a, b) => (Number(a.position) || 0) - (Number(b.position) || 0),
+        );
+    }
+
+    if (sortDirection === "desc") sorted.reverse();
+
+    return sorted;
+  }, [initialPerfumes, category, search, sortBy, sortDirection]);
+
   const filterToolbarProps = {
     sortBy,
     sortDirection,
@@ -218,12 +315,21 @@ export function DashboardContent({
     selectedCategory: showFilters ? category : undefined,
   };
 
+  const tabRightLabel = selectedUserId
+    ? perfumeCountLabel(filteredPerfumes.length)
+    : viewMode === "my"
+      ? perfumeCountLabel(filteredPerfumes.length)
+      : `${initialUsers.length} ${
+          initialUsers.length === 1 ? "użytkownik" : "użytkowników"
+        }`;
+
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md px-4 sm:px-6">
-          {/* Logo na górze */}
-          <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden mx-auto mb-6 bg-primary/10">
+      <div className="min-h-screen bg-background">
+        <SiteHeader user={null} searchQuery="" onSearchChange={() => {}} />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md px-4 sm:px-6">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto mb-6 ring-1 ring-border shadow-[0_8px_30px_-10px_oklch(0.42_0.09_160/0.35)]">
             <Image
               src="/logo.jpg"
               alt="PerfumeMadness logo"
@@ -232,27 +338,38 @@ export function DashboardContent({
             />
           </div>
 
-          {/* Tekst powitalny */}
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
             Witaj w PerfumeMadness
           </h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground text-base sm:text-lg mb-7 leading-relaxed">
             Zaloguj się przez Google, aby rozpocząć śledzenie swojej kolekcji
             perfum, odkrywać nowe zapachy i łączyć się z innymi miłośnikami
             perfum.
-          </p>
+            </p>
         </div>
+      </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0">
-      <CategorySidebar
-        selectedCategory={category}
-        onSelectCategory={handleCategoryChange}
-        categoryCounts={initialCategoryCounts}
+    <div className="min-h-screen">
+      <SiteHeader
+        user={user}
+        searchQuery={search}
+        onSearchChange={handleSearchChange}
+        filterToolbar={filterToolbarProps}
       />
+
+      <div className="flex w-full max-w-[1600px] mx-auto">
+        <CategorySidebar
+          selectedCategory={category}
+          onSelectCategory={handleCategoryChange}
+          categoryCounts={initialCategoryCounts}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSortChange={handleSortChange}
+        />
 
       <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
         <SheetContent side="left" className="w-[min(100vw-2rem,20rem)] p-0">
@@ -268,48 +385,33 @@ export function DashboardContent({
         </SheetContent>
       </Sheet>
 
-      <main
-        className={`flex-1 min-h-0 px-3 pb-3 sm:px-4 sm:pb-4 md:px-6 md:pb-6 overflow-y-auto overscroll-y-contain touch-pan-y ${isPending ? "[&_.perfume-content]:opacity-70" : ""}`}
-      >
-        <SearchHeader
-          searchQuery={search}
-          onSearchChange={handleSearchChange}
-          onTabChange={handleViewModeChange}
-          hasFollowingNotification={false}
-          {...filterToolbarProps}
+      <main className="flex-1 min-w-0 px-3 pb-4 sm:px-4 sm:pb-5 pt-3 sm:pt-4">
+        <ViewTabs
+          activeTab={viewMode}
+          onChange={handleViewModeChange}
+          rightLabel={tabRightLabel}
         />
-
-        <div className="md:hidden sticky top-0 z-30 -mx-3 px-3 py-1.5 sm:-mx-4 sm:px-4 mb-3 bg-background border-b border-border/50 isolate">
-          <FilterToolbar {...filterToolbarProps} />
-        </div>
 
         {viewMode === "my" ? (
           // MY COLLECTION VIEW
           <div className="perfume-content">
+            <CollectionStats userId={user.id} />
+
             {initialFavorites.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-3">
                 <FavoritesSection favorites={initialFavorites} />
               </div>
             )}
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-3">
               <h2 className="text-lg font-semibold text-foreground">
                 Moja kolekcja
               </h2>
-              <span className="text-sm text-muted-foreground">
-                {initialPerfumes.length}{" "}
-                {initialPerfumes.length === 1
-                  ? "perfumy"
-                  : initialPerfumes.length < 5
-                    ? "perfumy"
-                    : "perfum"}
-              </span>
             </div>
 
             <PerfumeGrid
-              perfumes={initialPerfumes}
+              perfumes={filteredPerfumes}
               isOwner={true}
-              sortBy={sortBy}
               initialBrandOrder={initialBrandOrder}
             />
           </div>
@@ -319,7 +421,7 @@ export function DashboardContent({
             {/* Back Button */}
             <button
               onClick={handleBackToExplore}
-              className="mb-4 sm:mb-6 mt-2 sm:mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              className="mb-4 sm:mb-5 mt-1 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 shrink-0" />
               <span className="truncate">Wróć do listy użytkowników</span>
@@ -327,7 +429,7 @@ export function DashboardContent({
 
             {/* User Header */}
             {selectedUserProfile && (
-              <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-card border border-border rounded-xl">
+              <div className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card border border-border/70 rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.04)]">
                 <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                   <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-muted flex-shrink-0">
                   {selectedUserProfile.avatar_url ? (
@@ -353,13 +455,7 @@ export function DashboardContent({
                       selectedUserProfile.email.split("@")[0]}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {initialPerfumes.length}{" "}
-                    {initialPerfumes.length === 1
-                      ? "perfumy"
-                      : initialPerfumes.length < 5
-                        ? "perfumy"
-                        : "perfum"}{" "}
-                    w kolekcji
+                    {perfumeCountLabel(initialPerfumes.length)} w kolekcji
                   </p>
                 </div>
                 </div>
@@ -370,31 +466,24 @@ export function DashboardContent({
               </div>
             )}
 
+            <CollectionStats userId={selectedUserId} />
+
             {initialFavorites.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-3">
                 <FavoritesSection favorites={initialFavorites} readOnly />
               </div>
             )}
 
             {/* Collection Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-3">
               <h3 className="text-lg font-semibold text-foreground">
                 Kolekcja użytkownika
               </h3>
-              <span className="text-sm text-muted-foreground">
-                {initialPerfumes.length}{" "}
-                {initialPerfumes.length === 1
-                  ? "perfumy"
-                  : initialPerfumes.length < 5
-                    ? "perfumy"
-                    : "perfum"}
-              </span>
             </div>
 
             <PerfumeGrid
-              perfumes={initialPerfumes}
+              perfumes={filteredPerfumes}
               isOwner={false}
-              sortBy={sortBy}
               initialBrandOrder={initialBrandOrder}
             />
           </div>
@@ -409,6 +498,7 @@ export function DashboardContent({
           onClose={() => setIsAddModalOpen(false)}
         />
       </main>
+      </div>
     </div>
   );
 }

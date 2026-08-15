@@ -15,6 +15,7 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    qualities: [50, 75],
   },
 }
 

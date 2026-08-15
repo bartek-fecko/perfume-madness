@@ -580,12 +580,92 @@ export async function getCategoryCounts(
   return counts;
 }
 
+// Oblicza statystyki kolekcji. Wydzielone do osobnej funkcji server action,
+// aby nie blokować pierwszego renderu strony - klient ładuje je asynchronicznie.
+export async function getCollectionStats(userId: string): Promise<{
+  total: number;
+  totalValue: number;
+  favoriteBrand: string;
+  topNote: string;
+  avgRating: number;
+}> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("perfumes")
+    .select("brand, price, rating, notes, is_favorite")
+    .eq("user_id", userId);
+
+  if (error || !data) {
+    console.error("Error fetching collection stats:", error);
+    return {
+      total: 0,
+      totalValue: 0,
+      favoriteBrand: "",
+      topNote: "",
+      avgRating: 0,
+    };
+  }
+
+  const total = data.length;
+
+  const totalValue = data.reduce(
+    (sum: number, p) => sum + (Number(p.price) || 0),
+    0,
+  );
+
+  // Ulubiona marka = marka z największą liczbą ulubionych (is_favorite) perfum.
+  let favoriteBrand = "";
+  let favoriteBrandCount = 0;
+  const favCounts = new Map<string, { label: string; count: number }>();
+  for (const p of data) {
+    if (!p.is_favorite || !p.brand) continue;
+    const key = brandGroupKey(p.brand);
+    const entry = favCounts.get(key) || {
+      label: prettifyBrandName(p.brand),
+      count: 0,
+    };
+    entry.count += 1;
+    favCounts.set(key, entry);
+    if (entry.count > favoriteBrandCount) {
+      favoriteBrandCount = entry.count;
+      favoriteBrand = entry.label;
+    }
+  }
+
+  // Ulubiona nuta = nuta, która najczęściej pojawia się w ulubionych
+  // (is_favorite) perfumach.
+  const favorites = data.filter((p) => p.is_favorite);
+  const noteCounts = new Map<string, number>();
+  for (const p of favorites) {
+    for (const note of p.notes || []) {
+      const key = String(note).trim();
+      if (!key) continue;
+      noteCounts.set(key, (noteCounts.get(key) || 0) + 1);
+    }
+  }
+  let topNote = "";
+  let topNoteCount = 0;
+  for (const [note, count] of noteCounts) {
+    if (count > topNoteCount) {
+      topNoteCount = count;
+      topNote = note;
+    }
+  }
+
+  const avgRating = total
+    ? data.reduce((sum: number, p) => sum + (Number(p.rating) || 0), 0) /
+      total
+    : 0;
+
+  return { total, totalValue, favoriteBrand, topNote, avgRating };
+}
+
 // Zwraca listę unikalnych marek z kolekcji zalogowanego użytkownika
 // (do podpowiedzi w formularzu dodawania perfum). Marka pojawia się tu
 // dopiero po dodaniu przynajmniej jednych perfum z tą marką - nie ma
 // osobnej tabeli "brands", marki są wyprowadzane z istniejących perfum.
-export async function getUserBrands(): Promise<string[]> {
-  const supabase = await createClient();
+export async function getUserBrands(): Promise<string[]> {  const supabase = await createClient();
 
   const {
     data: { user },

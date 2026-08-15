@@ -36,8 +36,9 @@ import {
   toggleFavorite,
 } from "@/lib/actions/perfumes";
 import { addComment, deleteComment } from "@/lib/actions/comments";
+import { SiteHeader } from "@/components/site-header";
 import { cn } from "@/lib/utils";
-import type { Perfume, PerfumeComment } from "@/lib/types";
+import type { Perfume, PerfumeComment, User } from "@/lib/types";
 
 const allCategories = [
   "Kwiatowe",
@@ -62,6 +63,7 @@ interface PerfumeDetailProps {
   initialComments: PerfumeComment[];
   currentUserId: string | null;
   userCommentCount: number;
+  user: User | null;
 }
 
 // Funkcja do normalizacji URL/BASE64
@@ -87,6 +89,7 @@ export function PerfumeDetail({
   initialComments,
   currentUserId,
   userCommentCount: initialUserCommentCount,
+  user,
 }: PerfumeDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -245,19 +248,19 @@ export function PerfumeDetail({
         <div key={i} className="relative inline-block">
           {isHalf ? (
             <>
-              <Star className="w-5 h-5 text-border" />
+              <Star className="w-5 h-5 text-muted-foreground/40" />
               <div
                 className="absolute inset-0 overflow-hidden"
                 style={{ width: "10px" }}
               >
-                <Star className="w-5 h-5 text-accent fill-accent" />
+                <Star className="w-5 h-5 text-primary fill-primary" />
               </div>
             </>
           ) : (
             <Star
               className={cn(
                 "w-5 h-5",
-                isFull ? "text-accent fill-accent" : "text-border",
+                isFull ? "text-primary fill-primary" : "text-muted-foreground/40",
               )}
             />
           )}
@@ -316,6 +319,14 @@ export function PerfumeDetail({
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteHeader
+        user={user}
+        searchQuery=""
+        onSearchChange={() => {}}
+        hideSearch
+        innerClass="max-w-5xl"
+      />
+
       <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <button
@@ -400,7 +411,7 @@ export function PerfumeDetail({
 
         <div className="grid md:grid-cols-2 gap-6 md:gap-8">
           {/* IMAGE SECTION */}
-          <div className="relative aspect-square bg-secondary/30 rounded-2xl overflow-hidden">
+          <div className="relative aspect-square bg-secondary/30 rounded-xl overflow-hidden">
             {isEditing ? (
               <div className="absolute inset-0 p-4 flex flex-col">
                 <div className="mb-4">
@@ -497,7 +508,7 @@ export function PerfumeDetail({
                   <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {perfume.brand}
                   </p>
-                  <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mt-1">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-foreground mt-1 tracking-tight">
                     {perfume.name}
                   </h1>
                 </>

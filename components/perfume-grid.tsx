@@ -9,23 +9,22 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  MeasuringStrategy,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
   rectSortingStrategy,
-  verticalListSortingStrategy,
   sortableKeyboardCoordinates,
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, FlaskConical, Star } from "lucide-react";
 import { PerfumeCard } from "./perfume-card";
 import {
   toggleFavorite,
   deletePerfume,
-  reorderPerfumes,
   reorderBrands,
 } from "@/lib/actions/perfumes";
 import {
@@ -46,7 +45,48 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
-import type { Perfume, SortOption } from "@/lib/types";
+import type { Perfume } from "@/lib/types";
+import Image from "next/image";
+
+function isDataUrl(url?: string | null) {
+  return !!url && url.startsWith("data:");
+}
+
+function TileImage({
+  src,
+  alt,
+  className,
+  sizes,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  sizes: string;
+}) {
+  if (isDataUrl(src)) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        className={className}
+      />
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      loading="lazy"
+      decoding="async"
+      sizes={sizes}
+      quality={50}
+      className={className}
+    />
+  );
+}
 
 interface BrandGroup {
   key: string;
@@ -57,18 +97,16 @@ interface BrandGroup {
 interface PerfumeGridProps {
   perfumes: Perfume[];
   isOwner: boolean;
-  sortBy?: SortOption;
   initialBrandOrder?: Record<string, number>;
 }
 
 export function PerfumeGrid({
   perfumes,
   isOwner,
-  sortBy = "created_at",
   initialBrandOrder = {},
 }: PerfumeGridProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [optimisticPerfumes, setOptimisticPerfumes] = useState(perfumes);
   const [brandOrder, setBrandOrder] =
     useState<Record<string, number>>(initialBrandOrder);
@@ -84,7 +122,7 @@ export function PerfumeGrid({
     setBrandOrder(initialBrandOrder);
   }, [initialBrandOrder]);
 
-  const canReorder = isOwner && sortBy === "created_at";
+  const canReorder = isOwner;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -121,8 +159,36 @@ export function PerfumeGrid({
   }, [optimisticPerfumes, brandOrder]);
 
   const [openBrandKey, setOpenBrandKey] = useState<string | null>(null);
-  const selectedGroup =
-    brandGroups.find((g) => g.key === openBrandKey) ?? null;
+  const [displayGroup, setDisplayGroup] = useState<BrandGroup | null>(null);
+
+  const handleOpenBrand = (group: BrandGroup) => {
+    setOpenBrandKey(group.key);
+    setDisplayGroup(group);
+  };
+
+  const handleCloseBrand = () => {
+    setOpenBrandKey(null);
+  };
+
+  const modalCount = displayGroup?.perfumes.length ?? 0;
+  const modalMaxW =
+    modalCount <= 1
+      ? "sm:max-w-md"
+      : modalCount <= 2
+        ? "sm:max-w-2xl"
+        : modalCount <= 5
+          ? "sm:max-w-4xl"
+          : modalCount <= 8
+            ? "sm:max-w-5xl"
+            : "sm:max-w-7xl";
+  const modalCols =
+    modalCount <= 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : modalCount <= 5
+        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        : modalCount <= 8
+          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 
   // Jeśli marka zniknie (np. usunięto ostatnie perfumy), zamknij dialog.
   useEffect(() => {
@@ -198,47 +264,6 @@ export function PerfumeGrid({
     [brandGroups, router],
   );
 
-  const handlePerfumeDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || !openBrandKey) return;
-
-      const groupPerfumes = selectedGroup?.perfumes;
-      if (!groupPerfumes) return;
-
-      const ids = groupPerfumes.map((p) => p.id);
-      const oldIndex = ids.indexOf(String(active.id));
-      const newIndex = ids.indexOf(String(over.id));
-      if (oldIndex < 0 || newIndex < 0) return;
-
-      const reorderedIds = arrayMove(ids, oldIndex, newIndex);
-
-      // Zaktualizuj kolejność perfum tylko w obrębie tej marki
-      setOptimisticPerfumes((prev) => {
-        const reorderedBrandPerfumes = reorderedIds.map((id) =>
-          groupPerfumes.find((p) => p.id === id)!,
-        );
-        const reorderedSet = new Set(reorderedIds);
-
-        let brandIndex = 0;
-        return prev.map((p) => {
-          if (reorderedSet.has(p.id)) {
-            return reorderedBrandPerfumes[brandIndex++];
-          }
-          return p;
-        });
-      });
-
-      startTransition(async () => {
-        const result = await reorderPerfumes(reorderedIds);
-        if (result.success) {
-          router.refresh();
-        }
-      });
-    },
-    [openBrandKey, selectedGroup, router],
-  );
-
   if (optimisticPerfumes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -259,7 +284,7 @@ export function PerfumeGrid({
             <path d="M12 12v4" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Nie znaleziono perfum
         </h3>
         <p className="text-sm text-muted-foreground max-w-sm">
@@ -277,24 +302,20 @@ export function PerfumeGrid({
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleBrandDragEnd}
+        measuring={{ droppable: { strategy: MeasuringStrategy.BeforeDragging } }}
       >
         <SortableContext
           items={brandGroups.map((g) => g.key)}
           strategy={rectSortingStrategy}
         >
-          <div
-            className={
-              "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5" +
-              (isPending ? " opacity-70" : "")
-            }
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {brandGroups.map((group) => (
               <SortableBrandTile
                 key={group.key}
                 group={group}
                 isOwner={isOwner}
                 canReorder={canReorder}
-                onOpen={() => setOpenBrandKey(group.key)}
+                onOpen={() => handleOpenBrand(group)}
               />
             ))}
           </div>
@@ -303,45 +324,39 @@ export function PerfumeGrid({
 
       <Dialog
         open={!!openBrandKey}
-        onOpenChange={(open) => !open && setOpenBrandKey(null)}
+        onOpenChange={(open) => !open && handleCloseBrand()}
       >
-        <DialogContent className="sm:max-w-[85rem] max-h-[90vh] overflow-y-auto p-6 sm:p-10">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <span>{selectedGroup?.label}</span>
-              {selectedGroup && (
+        <DialogContent
+          className={`${modalMaxW} p-0 gap-0`}
+        >
+          <DialogHeader className="px-4 sm:px-6 pt-4 pb-3">
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <span>{displayGroup?.label}</span>
+              {displayGroup && (
                 <Badge variant="secondary" className="font-normal">
-                  {selectedGroup.perfumes.length}
+                  {displayGroup.perfumes.length}
                 </Badge>
               )}
             </DialogTitle>
           </DialogHeader>
 
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handlePerfumeDragEnd}
-          >
-            <SortableContext
-              items={selectedGroup?.perfumes.map((p) => p.id) ?? []}
-              strategy={verticalListSortingStrategy}
+          <div className="max-h-[70vh] overflow-y-auto overscroll-contain will-change-transform px-4 sm:px-6 pb-4 sm:pb-6">
+            <div
+              className={`grid ${modalCols} gap-3 sm:gap-4 [&>*]:[content-visibility:auto] [&>*]:[contain-intrinsic-size:auto_400px]`}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-2">
-                {selectedGroup?.perfumes.map((perfume) => (
-                  <SortablePerfume
-                    key={perfume.id}
-                    perfume={perfume}
-                    isOwner={isOwner}
-                    canReorder={canReorder}
-                    onToggleFavorite={
-                      isOwner ? handleToggleFavorite : undefined
-                    }
-                    onDelete={isOwner ? handleDeleteRequest : undefined}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+              {displayGroup?.perfumes.map((perfume) => (
+                <PerfumeCard
+                  key={perfume.id}
+                  perfume={perfume}
+                  isOwner={isOwner}
+                  onToggleFavorite={
+                    isOwner ? handleToggleFavorite : undefined
+                  }
+                  onDelete={isOwner ? handleDeleteRequest : undefined}
+                />
+              ))}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -397,7 +412,7 @@ function SortableBrandTile({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? "none" : transition,
   };
 
   return (
@@ -405,10 +420,10 @@ function SortableBrandTile({
       ref={setNodeRef}
       style={style}
       className={
-        "group text-left rounded-xl border border-border/50 bg-card p-4 transition-[box-shadow,border-color,opacity] hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" +
+        "group text-left rounded-lg border border-border/70 bg-card p-1.5 shadow-[0_1px_3px_oklch(0_0_0/0.06)] hover:border-primary/30 hover:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" +
         (isDragging
-          ? " opacity-60 shadow-lg ring-2 ring-primary/40 will-change-transform"
-          : "") +
+          ? " shadow-lg ring-2 ring-primary/40 will-change-transform transition-none"
+          : " transition-[transform,box-shadow,border-color,opacity] duration-200") +
         (canReorder ? " cursor-default" : "")
       }
       onClick={onOpen}
@@ -422,25 +437,42 @@ function SortableBrandTile({
       tabIndex={0}
       aria-label={`Otwórz markę ${group.label}`}
     >
-      <div className="relative grid grid-cols-2 grid-rows-2 gap-1 mb-4 aspect-square rounded-lg overflow-hidden bg-secondary/30">
-        {Array.from({ length: 4 }).map((_, i) => {
-          const preview = group.perfumes[i];
-          return (
-            <div
-              key={preview?.id ?? `empty-${i}`}
-              className="relative overflow-hidden bg-secondary/40"
-            >
-              {preview && (
-                <img
-                  src={preview.image_url || "/placeholder.svg"}
-                  alt={preview.name}
-                  loading="lazy"
+      <div className="relative mb-2 aspect-square rounded-md overflow-hidden bg-secondary/40">
+        {group.perfumes.length === 1 ? (
+          <>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <FlaskConical className="w-8 h-8 text-muted-foreground/30" />
+            </div>
+            <TileImage
+              src={group.perfumes[0].image_url || "/placeholder.svg"}
+              alt={group.perfumes[0].name}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+              className="absolute inset-0 w-full h-full object-contain p-2"
+            />
+          </>
+        ) : (
+          <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px">
+            {group.perfumes.slice(0, 4).map((p) => (
+              <div key={p.id} className="relative overflow-hidden bg-secondary/40">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FlaskConical className="w-4 h-4 text-muted-foreground/30" />
+                </div>
+                <TileImage
+                  src={p.image_url || "/placeholder.svg"}
+                  alt={p.name}
+                  sizes="(max-width: 640px) 25vw, (max-width: 1024px) 12vw, 10vw"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-              )}
-            </div>
-          );
-        })}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {group.perfumes.length > 4 && (
+          <span className="absolute bottom-1 right-1 z-10 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
+            +{group.perfumes.length - 4}
+          </span>
+        )}
 
         {canReorder && (
           <button
@@ -449,86 +481,41 @@ function SortableBrandTile({
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-1 left-1 z-10 p-1 rounded-md bg-background/90 border border-border/50 text-muted-foreground cursor-grab active:cursor-grabbing touch-none hover:text-foreground"
+            className="absolute top-1 left-1 z-10 p-1 rounded-md bg-white/90 backdrop-blur-sm border border-border/70 text-muted-foreground cursor-grab active:cursor-grabbing touch-none hover:text-foreground shadow-sm"
             aria-label={`Przeciągnij, aby zmienić kolejność marki ${group.label}`}
           >
-            <GripVertical className="w-4 h-4" />
+            <GripVertical className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-sm text-foreground truncate">
+      <div className="flex items-center justify-between gap-1.5">
+        <span className="font-semibold text-[13px] text-foreground truncate">
           {group.label}
         </span>
-        <Badge variant="secondary" className="shrink-0 font-normal">
+        <Badge
+          variant="secondary"
+          className="shrink-0 font-normal rounded-full px-2 py-0 text-[10px]"
+        >
           {group.perfumes.length}
         </Badge>
       </div>
-    </div>
-  );
-}
 
-interface SortablePerfumeProps {
-  perfume: Perfume;
-  isOwner: boolean;
-  canReorder: boolean;
-  onToggleFavorite?: (id: string) => void;
-  onDelete?: (id: string) => void;
-}
-
-function SortablePerfume({
-  perfume,
-  isOwner,
-  canReorder,
-  onToggleFavorite,
-  onDelete,
-}: SortablePerfumeProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: perfume.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={
-        "relative rounded-xl" +
-        (isDragging
-          ? " opacity-60 shadow-lg ring-2 ring-primary/40 z-10 will-change-transform"
-          : "")
-      }
-    >
-      {canReorder && (
-        <button
-          ref={setActivatorNodeRef}
-          type="button"
-          {...attributes}
-          {...listeners}
-          onClick={(e) => e.stopPropagation()}
-          className="absolute top-1 left-1 z-20 p-1 rounded-md bg-background/90 border border-border/50 text-muted-foreground cursor-grab active:cursor-grabbing touch-none hover:text-foreground"
-          aria-label={`Przeciągnij, aby zmienić kolejność perfum ${perfume.name}`}
-        >
-          <GripVertical className="w-4 h-4" />
-        </button>
+      {group.perfumes[0] && (
+        <div className="mt-1">
+          <p className="text-[11px] font-medium text-foreground/70 truncate">
+            {group.perfumes[0].name}
+          </p>
+          {group.perfumes[0].rating ? (
+            <div className="flex items-center gap-1 mt-0.5">
+              <Star className="w-2.5 h-2.5 text-primary fill-primary shrink-0" />
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {Number(group.perfumes[0].rating).toFixed(1)}
+              </span>
+            </div>
+          ) : null}
+        </div>
       )}
-      <PerfumeCard
-        perfume={perfume}
-        isOwner={isOwner}
-        onToggleFavorite={onToggleFavorite}
-        onDelete={onDelete}
-      />
     </div>
   );
 }

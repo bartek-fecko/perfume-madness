@@ -40,6 +40,7 @@ export default async function PerfumeDetailPage({
       initialComments={comments}
       currentUserId={user?.id || null}
       userCommentCount={userCommentCount}
+      user={user}
     />
   );
 }

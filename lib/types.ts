@@ -42,7 +42,14 @@ export type PerfumeCategory =
   | "Cytrusowe"
   | "Korzenne"
   | "Słodkie"
-  | "Orientalne";
+  | "Orientalne"
+  | "Aromatyczne"
+  | "Skórzane"
+  | "Zielone"
+  | "Fougère"
+  | "Ambrowe"
+  | "Piżmowe"
+  | "Wodne";
 
 export type SortOption = "price" | "rating" | "name" | "created_at";
 export type SortDirection = "asc" | "desc";

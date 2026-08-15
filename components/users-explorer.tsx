@@ -32,7 +32,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h2 className="mt-2 sm:mt-4 text-xl sm:text-2xl font-bold text-foreground mb-2">
+        <h2 className="mt-2 sm:mt-4 text-xl sm:text-2xl font-semibold text-foreground mb-2 tracking-tight">
           Eksploruj użytkowników
         </h2>
         <p className="text-muted-foreground">
@@ -49,7 +49,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
             placeholder="Szukaj użytkowników..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-shadow shadow-[0_1px_2px_oklch(0_0_0/0.04)]"
           />
         </div>
       </div>
@@ -66,7 +66,7 @@ export function UsersExplorer({ users, onUserSelect }: UsersExplorerProps) {
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className="group relative bg-card border border-border rounded-xl p-5 md:hover:shadow-lg md:hover:border-primary/50"
+            className="group relative bg-card border border-border/70 rounded-lg p-4 shadow-[0_1px_3px_oklch(0_0_0/0.06)] transition-all duration-200 md:hover:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.18)] md:hover:border-primary/30 md:hover:-translate-y-0.5"
           >
             <div className="flex items-start gap-4">
               {/* Avatar */}
