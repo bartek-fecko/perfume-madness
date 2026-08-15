@@ -220,9 +220,9 @@ export const PerfumeCard = memo(function PerfumeCard({
           </p>
           <Link
             href={`/perfume/${id}${!isOwner ? "?readonly=true" : ""}`}
-            className="block"
+            className="block w-fit"
           >
-            <h3 className="font-medium text-[13px] text-foreground/80 leading-tight truncate">
+            <h3 className="font-medium text-[13px] text-foreground/80 leading-tight truncate hover:text-primary hover:underline underline-offset-2 transition-colors">
               {name}
             </h3>
           </Link>

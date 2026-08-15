@@ -1,20 +1,21 @@
 export default function Loading() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="h-14 shrink-0 bg-card border-b border-border sticky top-0 z-50">
-        <div className="h-full px-3 sm:px-6 flex items-center gap-2 sm:gap-3 w-full max-w-[1600px] mx-auto">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-muted animate-pulse shrink-0" />
-            <div className="leading-tight">
-              <div className="h-3.5 w-28 bg-muted rounded animate-pulse" />
-              <div className="h-2 w-20 bg-muted rounded animate-pulse mt-1 hidden sm:block" />
-            </div>
-            <div className="w-6 h-6 rounded-lg bg-muted animate-pulse ml-1 shrink-0" />
+      <div className="h-16 shrink-0 bg-card/95 border-b border-border sticky top-0 z-50">
+        <div className="h-full px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full max-w-5xl mx-auto">
+          <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-muted animate-pulse shrink-0" />
+            <div className="h-4 w-28 sm:h-5 sm:w-32 bg-muted rounded animate-pulse" />
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex-1" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
+            <div className="w-px h-6 bg-border mx-0.5 hidden sm:block" />
             <div className="w-9 h-9 rounded-lg bg-muted animate-pulse" />
-            <div className="w-9 h-9 rounded-lg bg-muted animate-pulse" />
-            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            <div className="flex items-center gap-2 p-1.5">
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+              <div className="h-3.5 w-16 bg-muted rounded animate-pulse hidden sm:block" />
+            </div>
           </div>
         </div>
       </div>

@@ -466,11 +466,14 @@ export function PerfumeDetail({
               <button
                 type="button"
                 onClick={handleToggleFavorite}
+                aria-label={
+                  isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"
+                }
                 className={cn(
-                  "absolute top-4 right-4 p-3 rounded-full bg-card/80 backdrop-blur-sm transition-colors",
+                  "absolute top-4 right-4 p-3 rounded-full bg-card/90 backdrop-blur-sm shadow-md border border-border/70 transition-colors hover:scale-105",
                   isFavorite
-                    ? "text-accent"
-                    : "text-muted-foreground hover:text-accent",
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-primary",
                 )}
               >
                 <Star className={cn("w-6 h-6", isFavorite && "fill-current")} />

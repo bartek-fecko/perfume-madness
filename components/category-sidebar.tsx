@@ -232,7 +232,7 @@ export function CategorySidebar({
   onSortChange,
 }: CategorySidebarProps) {
   return (
-    <aside className="hidden md:block w-56 shrink-0 p-2 sticky top-[3.5625rem] self-start h-[calc(100vh-3.5625rem)] overflow-y-auto">
+    <aside className="hidden md:block w-56 shrink-0 p-2 sticky top-[4.0625rem] self-start h-[calc(100vh-4.0625rem)] overflow-y-auto">
       <div className="flex flex-col h-full bg-card border border-border/70 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] overflow-hidden">
         <div className="p-2.5 pb-2 flex items-center justify-between">
           <span className="text-sm font-semibold text-foreground">

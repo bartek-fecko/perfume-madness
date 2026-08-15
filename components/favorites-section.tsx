@@ -36,7 +36,7 @@ export function FavoritesSection({ favorites, readOnly = false }: FavoritesSecti
               href={`/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`}
               key={perfume.id}
               className={cn(
-                "shrink-0 flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary/40 border border-border/70",
+                "group shrink-0 flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary/40 border border-border/70",
                 "hover:border-primary/30 transition-all duration-200 cursor-pointer hover:bg-secondary/60"
               )}
             >
@@ -55,7 +55,7 @@ export function FavoritesSection({ favorites, readOnly = false }: FavoritesSecti
                 <p className="text-xs text-muted-foreground uppercase tracking-wide truncate max-w-[110px]">
                   {perfume.brand}
                 </p>
-                <p className="font-medium text-foreground text-sm truncate max-w-[110px]">
+                <p className="font-medium text-foreground text-sm truncate max-w-[110px] group-hover:text-primary group-hover:underline underline-offset-2 transition-colors">
                   {perfume.name}
                 </p>
               </div>

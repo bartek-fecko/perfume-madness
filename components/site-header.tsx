@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   Bell,
   LogIn,
@@ -10,6 +11,8 @@ import {
   Sparkles,
   Trash2,
   MessageSquare,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,9 +61,19 @@ export function SiteHeader({
   innerClass = "max-w-[1600px]",
 }: SiteHeaderProps) {
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   useEffect(() => {
     if (user) {
@@ -371,10 +384,10 @@ export function SiteHeader({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border">
-      <div className={`h-14 px-3 sm:px-6 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3 w-full ${innerClass} mx-auto`}>
-        <div className="flex items-center gap-2.5 min-w-0 justify-self-start">
-          <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-border bg-white shrink-0">
+    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_-4px_rgba(0,0,0,0.06)]">
+      <div className={`h-16 px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full ${innerClass} mx-auto`}>
+        <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+          <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white shrink-0 shadow-sm">
             <Image
               src="/logo.jpg"
               alt="PerfumeMadness logo"
@@ -382,20 +395,15 @@ export function SiteHeader({
               className="object-contain"
             />
           </div>
-          <div className="leading-tight min-w-0">
-            <h1 className="text-sm font-bold text-foreground tracking-tight truncate">
-              PerfumeMadness
-            </h1>
-            <p className="text-[10px] text-muted-foreground truncate hidden sm:block">
-              Twoja kolekcja perfum
-            </p>
-          </div>
+          <h1 className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
+            PerfumeMadness
+          </h1>
         </div>
 
-        <div className="justify-self-center">
+        <div className="flex-1 min-w-0 flex justify-center">
           {!hideSearch && user && (
-            <div className="hidden lg:flex items-center justify-center gap-2 min-w-0">
-              <div className="relative w-full max-w-md min-w-0">
+            <div className="hidden lg:flex items-center justify-center gap-2 w-full max-w-xl">
+              <div className="relative w-full min-w-0">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                 <Input
                   value={searchQuery}
@@ -410,7 +418,23 @@ export function SiteHeader({
           )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 justify-self-end">
+        <div className="flex items-center gap-1.5 shrink-0 justify-self-end">
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="relative flex items-center justify-center w-9 h-9 rounded-full bg-secondary border border-border/70 hover:bg-secondary/70 hover:border-primary/40 transition-colors"
+            aria-label="Przełącz motyw"
+          >
+            {mounted && resolvedTheme === "dark" ? (
+              <Sun className="w-[18px] h-[18px] text-foreground" />
+            ) : (
+              <Moon className="w-[18px] h-[18px] text-foreground" />
+            )}
+          </button>
+
+          {user && <div className="w-px h-6 bg-border mx-0.5 hidden sm:block" />}
+
           {user ? (
             <>
               {/* Notifications */}

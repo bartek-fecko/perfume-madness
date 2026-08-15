@@ -101,9 +101,9 @@ export default async function HomePage({ searchParams }: PageProps) {
 function DashboardSkeleton() {
   return (
     <div className="min-h-screen">
-      <div className="h-14 shrink-0 bg-card border-b border-border sticky top-0 z-50" />
+      <div className="h-16 shrink-0 bg-card border-b border-border sticky top-0 z-50" />
       <div className="flex w-full max-w-[1600px] mx-auto">
-        <aside className="hidden md:block w-56 shrink-0 p-2 pt-3 sticky top-[3.5625rem] self-start h-[calc(100vh-3.5625rem)]">
+        <aside className="hidden md:block w-56 shrink-0 p-2 pt-3 sticky top-[4.0625rem] self-start h-[calc(100vh-4.0625rem)]">
             <div className="flex flex-col h-full bg-card border border-border/70 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-3">
               <div className="h-4 w-24 bg-muted rounded animate-pulse mb-3" />
               {Array.from({ length: 10 }).map((_, i) => (

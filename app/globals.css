@@ -130,4 +130,20 @@
     background: oklch(0.42 0.09 160 / 0.2);
     color: var(--foreground);
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a,
+  select,
+  summary,
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-trigger"],
+  [data-slot="select-trigger"],
+  [data-slot="checkbox"],
+  [data-slot="tabs-trigger"] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }

@@ -74,7 +74,7 @@ function ViewTabs({ activeTab, onChange, rightLabel }: ViewTabsProps) {
           onClick={() => onChange("my")}
           className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
             activeTab === "my"
-              ? "bg-primary text-primary-foreground shadow-sm"
+              ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -85,7 +85,7 @@ function ViewTabs({ activeTab, onChange, rightLabel }: ViewTabsProps) {
           onClick={() => onChange("explore")}
           className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
             activeTab === "explore"
-              ? "bg-primary text-primary-foreground shadow-sm"
+              ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >

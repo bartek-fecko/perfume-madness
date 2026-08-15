@@ -415,16 +415,22 @@ function SortableBrandTile({
     transition: isDragging ? "none" : transition,
   };
 
+  const ratedPerfumes = group.perfumes.filter((p) => p.rating);
+  const avgRating =
+    ratedPerfumes.length > 0
+      ? ratedPerfumes.reduce((sum, p) => sum + Number(p.rating), 0) /
+        ratedPerfumes.length
+      : null;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={
-        "group text-left rounded-lg border border-border/70 bg-card p-1.5 shadow-[0_1px_3px_oklch(0_0_0/0.06)] hover:border-primary/30 hover:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" +
+        "group text-left rounded-lg border border-border/70 bg-card p-1.5 shadow-[0_1px_3px_oklch(0_0_0/0.06)] hover:border-primary/30 hover:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer" +
         (isDragging
           ? " shadow-lg ring-2 ring-primary/40 will-change-transform transition-none"
-          : " transition-[transform,box-shadow,border-color,opacity] duration-200") +
-        (canReorder ? " cursor-default" : "")
+          : " transition-[transform,box-shadow,border-color,opacity] duration-200")
       }
       onClick={onOpen}
       onKeyDown={(e) => {
@@ -506,11 +512,11 @@ function SortableBrandTile({
           <p className="text-[11px] font-medium text-foreground/70 truncate">
             {group.perfumes[0].name}
           </p>
-          {group.perfumes[0].rating ? (
+          {avgRating !== null ? (
             <div className="flex items-center gap-1 mt-0.5">
               <Star className="w-2.5 h-2.5 text-primary fill-primary shrink-0" />
               <span className="text-[10px] font-medium text-muted-foreground">
-                {Number(group.perfumes[0].rating).toFixed(1)}
+                {avgRating.toFixed(1)}
               </span>
             </div>
           ) : null}
