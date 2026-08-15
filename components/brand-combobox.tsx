@@ -67,16 +67,17 @@ export function BrandCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-[var(--radix-popover-trigger-width)] max-h-[26rem] overflow-y-auto overscroll-contain p-0"
         align="start"
+        onWheel={(e) => e.stopPropagation()}
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} className="h-auto overflow-visible">
           <CommandInput
             value={search}
             onValueChange={setSearch}
             placeholder="Szukaj marki..."
           />
-          <CommandList>
+          <CommandList className="max-h-none overflow-y-visible">
             <CommandGroup>
               {brands
                 .filter((b) => b.toLowerCase().includes(normalizedSearch))
@@ -85,6 +86,7 @@ export function BrandCombobox({
                     key={brandOption}
                     value={brandOption}
                     onSelect={() => handleSelect(brandOption)}
+                    className="py-3"
                   >
                     <Check
                       className={cn(
@@ -92,7 +94,7 @@ export function BrandCombobox({
                         value === brandOption ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    {brandOption}
+                    <span className="text-base">{brandOption}</span>
                   </CommandItem>
                 ))}
             </CommandGroup>
@@ -102,10 +104,12 @@ export function BrandCombobox({
                 <CommandItem
                   value={`__create__${search}`}
                   onSelect={() => handleSelect(search.trim())}
-                  className="text-primary"
+                  className="text-primary py-3"
                 >
                   <Plus className="h-4 w-4" />
-                  Dodaj nową markę &quot;{search.trim()}&quot;
+                  <span className="text-base">
+                    Dodaj nową markę &quot;{search.trim()}&quot;
+                  </span>
                 </CommandItem>
               </CommandGroup>
             )}

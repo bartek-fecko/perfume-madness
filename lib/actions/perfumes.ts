@@ -43,6 +43,23 @@ export async function createPerfume(perfume: {
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
+    const { data: existingPerfumes } = await supabase
+      .from("perfumes")
+      .select("brand, position")
+      .eq("user_id", user.id);
+
+    // Nowy perfum ląduje na końcu grupy swojej marki.
+    const newBrandKey = brandGroupKey(perfume.brand);
+    const sameBrandPositions = (existingPerfumes || [])
+      .filter(
+        (p: { brand: string; position: number }) =>
+          brandGroupKey(p.brand) === newBrandKey,
+      )
+      .map((p: { brand: string; position: number }) => p.position);
+    const position =
+      sameBrandPositions.length > 0
+        ? Math.max(...sameBrandPositions) + 1
+        : 0;
 
     const { data, error } = await supabase
       .from("perfumes")
@@ -50,6 +67,7 @@ export async function createPerfume(perfume: {
         ...perfume,
         user_id: user.id,
         is_favorite: false,
+        position,
       })
       .select()
       .single();
@@ -152,6 +170,9 @@ export async function getPerfumes(options: {
 
   const sortBy = options.sortBy || "created_at";
   const sortDirection = options.sortDirection || "desc";
+  if (sortBy === "created_at") {
+    query = query.order("position", { ascending: true });
+  }
   query = query.order(sortBy, { ascending: sortDirection === "asc" });
 
   const { data, error } = await query;
@@ -252,6 +273,9 @@ export async function getFollowingPerfumes(options: {
 
   const sortBy = options.sortBy || "created_at";
   const sortDirection = options.sortDirection || "desc";
+  if (sortBy === "created_at") {
+    query = query.order("position", { ascending: true });
+  }
   query = query.order(sortBy, { ascending: sortDirection === "asc" });
 
   const { data, error } = await query;
@@ -287,6 +311,9 @@ export async function getUserPerfumes(
 
   const sortBy = options.sortBy || "created_at";
   const sortDirection = options.sortDirection || "desc";
+  if (sortBy === "created_at") {
+    query = query.order("position", { ascending: true });
+  }
   query = query.order(sortBy, { ascending: sortDirection === "asc" });
 
   const { data, error } = await query;
@@ -587,4 +614,82 @@ export async function getUserBrands(): Promise<string[]> {
   return Array.from(brandsByKey.values()).sort((a, b) =>
     a.localeCompare(b, "pl"),
   );
+}
+
+// Zapisuje ręczną kolejność perfum w obrębie jednej marki (drag & drop
+// w dialogu marki). Kolejność podana jako tablica id w docelowej kolejności.
+export async function reorderPerfumes(orderedIds: string[]) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const updates = orderedIds.map((id, index) => ({
+    id,
+    user_id: user.id,
+    position: index,
+  }));
+
+  const { error } = await supabase.from("perfumes").upsert(updates);
+
+  if (error) {
+    console.error("Error reordering perfumes:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidateTag("perfumes");
+  return { success: true };
+}
+
+// Zapisuje ręczną kolejność marek na siatce (drag & drop kafelków).
+export async function reorderBrands(orderedKeys: string[]) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const rows = orderedKeys.map((key, index) => ({
+    user_id: user.id,
+    brand_key: key,
+    position: index,
+  }));
+
+  const { error } = await supabase
+    .from("brand_positions")
+    .upsert(rows, { onConflict: "user_id,brand_key" });
+
+  if (error) {
+    console.error("Error reordering brands:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidateTag("perfumes");
+  return { success: true };
+}
+
+// Zwraca kolejność marek użytkownika jako mapę brand_key -> position.
+export async function getBrandPositions(
+  userId: string,
+): Promise<Record<string, number>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("brand_positions")
+    .select("brand_key, position")
+    .eq("user_id", userId);
+
+  if (error || !data) {
+    console.error("Error fetching brand positions:", error);
+    return {};
+  }
+
+  const map: Record<string, number> = {};
+  for (const row of data) {
+    map[row.brand_key] = row.position;
+  }
+  return map;
 }

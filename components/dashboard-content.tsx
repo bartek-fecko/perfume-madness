@@ -37,6 +37,7 @@ interface DashboardContentProps {
   initialViewMode: "my" | "explore";
   initialUsers?: any[];
   selectedUserId?: string;
+  initialBrandOrder?: Record<string, number>;
   selectedUserProfile?: {
     id: string;
     email: string;
@@ -58,6 +59,7 @@ export function DashboardContent({
   initialViewMode,
   initialUsers = [],
   selectedUserId,
+  initialBrandOrder = {},
   selectedUserProfile,
 }: DashboardContentProps) {
   const router = useRouter();
@@ -304,7 +306,12 @@ export function DashboardContent({
               </span>
             </div>
 
-            <PerfumeGrid perfumes={initialPerfumes} isOwner={true} />
+            <PerfumeGrid
+              perfumes={initialPerfumes}
+              isOwner={true}
+              sortBy={sortBy}
+              initialBrandOrder={initialBrandOrder}
+            />
           </div>
         ) : selectedUserId ? (
           // USER'S COLLECTION VIEW
@@ -384,7 +391,12 @@ export function DashboardContent({
               </span>
             </div>
 
-            <PerfumeGrid perfumes={initialPerfumes} isOwner={false} />
+            <PerfumeGrid
+              perfumes={initialPerfumes}
+              isOwner={false}
+              sortBy={sortBy}
+              initialBrandOrder={initialBrandOrder}
+            />
           </div>
         ) : (
           // USERS EXPLORER VIEW

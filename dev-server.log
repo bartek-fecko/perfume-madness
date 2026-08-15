@@ -1,0 +1,836 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.18.110:3000
+   - Environments: .env
+
+ ✓ Starting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 2.1s
+ ○ Compiling / ...
+📦 Loading MY collection
+ GET / 200 in 10.4s (compile: 6.4s, proxy.ts: 1684ms, render: 2.3s)
+ POST / 200 in 1608ms (compile: 12ms, proxy.ts: 266ms, render: 1330ms)
+ POST / 200 in 344ms (compile: 13ms, proxy.ts: 126ms, render: 205ms)
+ GET /api/perfume-search?q=aventus 200 in 1149ms (compile: 387ms, render: 762ms)
+ GET /api/perfume-search?q=sauvage 200 in 276ms (compile: 4ms, render: 272ms)
+ GET /api/perfume-search?q=bleu 200 in 297ms (compile: 4ms, render: 292ms)
+ GET /api/perfume-search?q=aventus 200 in 429ms (compile: 49ms, render: 380ms)
+ GET /api/perfume-search?q=sauvage 200 in 159ms (compile: 4ms, render: 155ms)
+ GET /api/perfume-search?q=bleu 200 in 143ms (compile: 4ms, render: 139ms)
+ POST / 200 in 1930ms (compile: 8ms, proxy.ts: 183ms, render: 1739ms)
+ GET /api/perfume-search?q=sauvage 200 in 12ms (compile: 5ms, render: 7ms)
+ GET /api/perfume-search?q=sauvage 200 in 12ms (compile: 5ms, render: 7ms)
+ POST / 200 in 346ms (compile: 9ms, proxy.ts: 151ms, render: 186ms)
+ GET /api/perfume-search?q=bleu%20de%20chanel 200 in 307ms (compile: 4ms, render: 303ms)
+ GET /api/perfume-search?q=aves 200 in 266ms (compile: 4ms, render: 262ms)
+ GET /api/perfume-search?q=avent 200 in 286ms (compile: 4ms, render: 282ms)
+ GET /api/perfume-search?q=bleu%20de%20chanel 200 in 10ms (compile: 4ms, render: 6ms)
+ GET /api/perfume-search?q=bleu%20de%20chanel 200 in 13ms (compile: 4ms, render: 8ms)
+ POST / 200 in 872ms (compile: 6ms, proxy.ts: 178ms, render: 688ms)
+ POST / 200 in 358ms (compile: 8ms, proxy.ts: 183ms, render: 167ms)
+ GET /api/perfume-search?q=bleu 200 in 11ms (compile: 4ms, render: 7ms)
+ GET /api/perfume-search?q=bleu%20de%20ch 200 in 308ms (compile: 4ms, render: 304ms)
+ GET /api/perfume-search?q=bleu%20de%20chdd 200 in 340ms (compile: 4ms, render: 336ms)
+ POST / 200 in 794ms (compile: 8ms, proxy.ts: 175ms, render: 611ms)
+ ✓ Compiled in 153ms
+ ✓ Compiled in 154ms
+ POST / 200 in 1149ms (compile: 256ms, proxy.ts: 174ms, render: 719ms)
+ GET /api/perfume-search?q=bleu%20de%20chddd 200 in 432ms (compile: 5ms, render: 427ms)
+ GET /api/perfume-search?q=bleu%20de%20chdddd 200 in 194ms (compile: 8ms, render: 186ms)
+ GET /api/perfume-search?q=bleu%20de%20chddddd 200 in 225ms (compile: 12ms, render: 214ms)
+ GET /api/perfume-search?q=bleu%20de%20chdddd 200 in 11ms (compile: 4ms, render: 7ms)
+ POST / 200 in 767ms (compile: 6ms, proxy.ts: 152ms, render: 609ms)
+ POST / 200 in 772ms (compile: 6ms, proxy.ts: 145ms, render: 620ms)
+ POST / 200 in 756ms (compile: 8ms, proxy.ts: 155ms, render: 593ms)
+ POST / 200 in 1004ms (compile: 9ms, proxy.ts: 233ms, render: 762ms)
+ POST / 200 in 774ms (compile: 8ms, proxy.ts: 126ms, render: 640ms)
+ POST / 200 in 1330ms (compile: 8ms, proxy.ts: 175ms, render: 1148ms)
+ POST / 200 in 774ms (compile: 7ms, proxy.ts: 138ms, render: 630ms)
+ ✓ Compiled in 132ms
+ ✓ Compiled in 117ms
+ POST / 200 in 965ms (compile: 179ms, proxy.ts: 158ms, render: 628ms)
+ ✓ Compiled in 122ms
+ ✓ Compiled in 300ms
+ GET /api/perfume-search?q=bleu%20de%20ch 200 in 14ms (compile: 4ms, render: 10ms)
+ GET /api/perfume-search?q=bleu%20de%20c 200 in 339ms (compile: 3ms, render: 335ms)
+ GET /api/perfume-search?q=bleu%20de%20cha 200 in 143ms (compile: 4ms, render: 139ms)
+ ✓ Compiled in 233ms
+ POST / 200 in 1056ms (compile: 201ms, proxy.ts: 137ms, render: 717ms)
+ ✓ Compiled in 102ms
+ GET /api/perfume-search?q=bleu%20de%20chan 200 in 432ms (compile: 23ms, render: 409ms)
+ GET /api/perfume-search?q=bleu%20de%20cha 200 in 10ms (compile: 4ms, render: 5ms)
+ GET /api/perfume-search?q=bleu%20de%20chan 200 in 9ms (compile: 4ms, render: 5ms)
+ POST / 200 in 986ms (compile: 188ms, proxy.ts: 141ms, render: 656ms)
+ POST / 200 in 281ms (compile: 9ms, proxy.ts: 99ms, render: 173ms)
+ GET /api/perfume-search?q=bleu 200 in 10ms (compile: 3ms, render: 6ms)
+ GET /api/perfume-search?q=bleu%20de%20c 200 in 12ms (compile: 4ms, render: 7ms)
+ POST / 200 in 749ms (compile: 7ms, proxy.ts: 145ms, render: 597ms)
+ POST / 200 in 930ms (compile: 12ms, proxy.ts: 165ms, render: 752ms)
+ GET /api/perfume-search?q=bleu%20de%20ch 200 in 21ms (compile: 4ms, render: 17ms)
+ GET /api/perfume-search?q=bleu%20de%20c 200 in 10ms (compile: 5ms, render: 5ms)
+ ✓ Compiled in 133ms
+ ✓ Compiled in 351ms
+📦 Loading MY collection
+ GET / 200 in 1988ms (compile: 385ms, proxy.ts: 174ms, render: 1430ms)
+ POST / 200 in 935ms (compile: 10ms, proxy.ts: 96ms, render: 829ms)
+ POST / 200 in 311ms (compile: 18ms, proxy.ts: 90ms, render: 203ms)
+ GET /api/perfume-search?q=belu 200 in 438ms (compile: 4ms, render: 434ms)
+ GET /api/perfume-search?q=bleu 200 in 10ms (compile: 4ms, render: 6ms)
+ GET /api/perfume-search?q=bleu%20de%20c 200 in 10ms (compile: 4ms, render: 6ms)
+ POST / 200 in 762ms (compile: 8ms, proxy.ts: 170ms, render: 585ms)
+ GET /api/perfume-search?q=bleu%20de%20ch 200 in 17ms (compile: 6ms, render: 11ms)
+ POST / 200 in 760ms (compile: 8ms, proxy.ts: 191ms, render: 561ms)
+ POST / 200 in 753ms (compile: 7ms, proxy.ts: 179ms, render: 567ms)
+ POST / 200 in 699ms (compile: 7ms, proxy.ts: 145ms, render: 547ms)
+ GET /api/perfume-search?q=ave 200 in 374ms (compile: 4ms, render: 371ms)
+📦 Loading MY collection
+ GET / 200 in 1411ms (compile: 6ms, proxy.ts: 328ms, render: 1077ms)
+ POST / 200 in 774ms (compile: 8ms, proxy.ts: 104ms, render: 662ms)
+ POST / 200 in 439ms (compile: 7ms, proxy.ts: 146ms, render: 286ms)
+ GET /api/perfume-search?q=ave 200 in 12ms (compile: 4ms, render: 7ms)
+ POST / 200 in 2.0s (compile: 6ms, proxy.ts: 205ms, render: 1822ms)
+ ✓ Compiled in 245ms
+ POST / 200 in 1147ms (compile: 210ms, proxy.ts: 164ms, render: 773ms)
+ POST / 200 in 841ms (compile: 6ms, proxy.ts: 152ms, render: 682ms)
+ ✓ Compiled in 236ms
+ POST / 200 in 1066ms (compile: 190ms, proxy.ts: 138ms, render: 738ms)
+ ✓ Compiled in 128ms
+ POST / 200 in 1867ms (compile: 357ms, proxy.ts: 162ms, render: 1348ms)
+ POST / 200 in 350ms (compile: 13ms, proxy.ts: 160ms, render: 177ms)
+ GET /api/perfume-search?q=avent 200 in 3.1s (compile: 4ms, render: 3.1s)
+ POST / 200 in 848ms (compile: 6ms, proxy.ts: 194ms, render: 647ms)
+ GET /api/perfume-search?q=Aaventus 200 in 466ms (compile: 4ms, render: 462ms)
+ POST / 200 in 3.5s (compile: 7ms, proxy.ts: 2.8s, render: 723ms)
+ POST / 200 in 682ms (compile: 6ms, proxy.ts: 149ms, render: 528ms)
+ GET /api/perfume-search?q=Aasaventus 200 in 345ms (compile: 4ms, render: 342ms)
+📦 Loading MY collection
+ GET / 200 in 876ms (compile: 6ms, proxy.ts: 190ms, render: 680ms)
+ POST / 200 in 630ms (compile: 7ms, proxy.ts: 96ms, render: 528ms)
+ POST / 200 in 273ms (compile: 13ms, proxy.ts: 92ms, render: 169ms)
+ GET /api/perfume-search?q=ads 200 in 371ms (compile: 4ms, render: 367ms)
+ POST / 200 in 791ms (compile: 8ms, proxy.ts: 132ms, render: 652ms)
+ GET /api/perfume-search?q=Turkish%20Delighta 200 in 271ms (compile: 4ms, render: 267ms)
+ POST / 200 in 1820ms (compile: 6ms, proxy.ts: 205ms, render: 1609ms)
+ GET /api/perfume-search?q=Turkish%20Delight%5C 200 in 382ms (compile: 4ms, render: 378ms)
+ POST / 200 in 785ms (compile: 6ms, proxy.ts: 176ms, render: 602ms)
+ ✓ Compiled in 181ms
+ POST / 200 in 1106ms (compile: 235ms, proxy.ts: 202ms, render: 669ms)
+ POST / 200 in 414ms (compile: 12ms, proxy.ts: 221ms, render: 181ms)
+📦 Loading MY collection
+ GET / 200 in 800ms (compile: 9ms, proxy.ts: 81ms, render: 710ms)
+ POST / 200 in 797ms (compile: 15ms, proxy.ts: 73ms, render: 709ms)
+ POST / 200 in 221ms (compile: 6ms, proxy.ts: 79ms, render: 136ms)
+ POST / 200 in 376ms (compile: 9ms, proxy.ts: 164ms, render: 204ms)
+ GET /api/perfume-search?q=addf 200 in 349ms (compile: 3ms, render: 345ms)
+ POST / 200 in 661ms (compile: 7ms, proxy.ts: 134ms, render: 520ms)
+ GET /api/perfume-search?q=addfg 200 in 127ms (compile: 4ms, render: 123ms)
+ POST / 200 in 298ms (compile: 9ms, proxy.ts: 140ms, render: 149ms)
+ ✓ Compiled in 214ms
+ POST / 200 in 1946ms (compile: 517ms, proxy.ts: 183ms, render: 1246ms)
+ POST / 200 in 740ms (compile: 8ms, proxy.ts: 185ms, render: 547ms)
+ POST / 200 in 4.2s (compile: 9ms, proxy.ts: 775ms, render: 3.4s)
+ POST / 200 in 1055ms (compile: 6ms, proxy.ts: 327ms, render: 722ms)
+ POST / 200 in 808ms (compile: 7ms, proxy.ts: 200ms, render: 601ms)
+📦 Loading MY collection
+ GET / 200 in 1168ms (compile: 6ms, proxy.ts: 156ms, render: 1006ms)
+ POST / 200 in 683ms (compile: 7ms, proxy.ts: 110ms, render: 565ms)
+ POST / 200 in 295ms (compile: 10ms, proxy.ts: 103ms, render: 182ms)
+ GET /api/perfume-search?q=aventus 200 in 452ms (compile: 4ms, render: 448ms)
+ GET /api/perfume-search?q=aventu 200 in 249ms (compile: 5ms, render: 244ms)
+ POST / 200 in 702ms (compile: 8ms, proxy.ts: 150ms, render: 544ms)
+ GET /api/perfume-search?q=creed 200 in 277ms (compile: 3ms, render: 274ms)
+ GET /api/perfume-search?q=creed%20cen 200 in 374ms (compile: 4ms, render: 369ms)
+ POST / 200 in 697ms (compile: 7ms, proxy.ts: 154ms, render: 536ms)
+ POST / 200 in 807ms (compile: 10ms, proxy.ts: 147ms, render: 649ms)
+ POST / 200 in 389ms (compile: 10ms, proxy.ts: 163ms, render: 217ms)
+ POST / 200 in 644ms (compile: 7ms, proxy.ts: 145ms, render: 492ms)
+ POST / 200 in 784ms (compile: 9ms, proxy.ts: 145ms, render: 630ms)
+ POST / 200 in 669ms (compile: 6ms, proxy.ts: 159ms, render: 504ms)
+ ✓ Compiled in 117ms
+ POST / 200 in 954ms (compile: 183ms, proxy.ts: 141ms, render: 630ms)
+ POST / 200 in 465ms (compile: 18ms, proxy.ts: 185ms, render: 262ms)
+ POST / 200 in 673ms (compile: 6ms, proxy.ts: 90ms, render: 576ms)
+ POST / 200 in 370ms (compile: 12ms, proxy.ts: 149ms, render: 208ms)
+ POST / 200 in 758ms (compile: 7ms, proxy.ts: 141ms, render: 610ms)
+ GET /api/perfume-search?q=Centauru 200 in 368ms (compile: 4ms, render: 364ms)
+ POST / 200 in 822ms (compile: 5ms, proxy.ts: 212ms, render: 605ms)
+ POST / 200 in 419ms (compile: 8ms, proxy.ts: 200ms, render: 210ms)
+ GET /api/perfume-search?q=Centaur 200 in 403ms (compile: 4ms, render: 399ms)
+ POST / 200 in 671ms (compile: 6ms, proxy.ts: 110ms, render: 555ms)
+ POST / 200 in 805ms (compile: 6ms, proxy.ts: 128ms, render: 671ms)
+ ✓ Compiled in 309ms
+ ✓ Compiled in 133ms
+ POST / 200 in 1974ms (compile: 683ms, proxy.ts: 180ms, render: 1111ms)
+ GET /api/perfume-search?q=Centaura 200 in 333ms (compile: 5ms, render: 328ms)
+ GET /api/perfume-search?q=Centau 200 in 392ms (compile: 6ms, render: 386ms)
+ GET /api/perfume-search?q=Centa 200 in 367ms (compile: 4ms, render: 363ms)
+ POST / 200 in 1661ms (compile: 6ms, proxy.ts: 144ms, render: 1511ms)
+ POST / 200 in 753ms (compile: 6ms, proxy.ts: 128ms, render: 618ms)
+ GET /api/perfume-search?q=Cent 200 in 388ms (compile: 6ms, render: 382ms)
+ GET /api/perfume-search?q=bleu 200 in 365ms (compile: 4ms, render: 361ms)
+ ✓ Compiled in 151ms
+ GET /api/perfume-search?q=ble 200 in 422ms (compile: 37ms, render: 385ms)
+ POST / 200 in 1747ms (compile: 441ms, proxy.ts: 166ms, render: 1141ms)
+ GET /perfume/ecca4fc5-aa65-4870-af56-757d401e1407 200 in 2.8s (compile: 2.1s, proxy.ts: 169ms, render: 596ms)
+ POST / 200 in 861ms (compile: 7ms, proxy.ts: 165ms, render: 688ms)
+ POST / 200 in 540ms (compile: 18ms, proxy.ts: 96ms, render: 426ms)
+ POST / 200 in 784ms (compile: 6ms, proxy.ts: 139ms, render: 639ms)
+ POST / 200 in 739ms (compile: 8ms, proxy.ts: 149ms, render: 582ms)
+ POST / 200 in 386ms (compile: 7ms, proxy.ts: 195ms, render: 184ms)
+ GET /api/perfume-search?q=aven 200 in 284ms (compile: 4ms, render: 280ms)
+ GET /api/perfume-search?q=Aventus%2010th%20Anniversar 200 in 273ms (compile: 5ms, render: 268ms)
+ POST / 200 in 769ms (compile: 7ms, proxy.ts: 126ms, render: 636ms)
+ POST / 200 in 802ms (compile: 8ms, proxy.ts: 216ms, render: 578ms)
+ POST / 200 in 2.1s (compile: 8ms, proxy.ts: 500ms, render: 1545ms)
+ POST / 200 in 881ms (compile: 7ms, proxy.ts: 176ms, render: 698ms)
+ POST / 200 in 342ms (compile: 8ms, proxy.ts: 156ms, render: 178ms)
+ POST / 200 in 957ms (compile: 7ms, proxy.ts: 169ms, render: 780ms)
+ POST / 200 in 777ms (compile: 6ms, proxy.ts: 138ms, render: 633ms)
+ POST / 200 in 294ms (compile: 8ms, proxy.ts: 135ms, render: 151ms)
+ GET /api/perfume-search?q=bleu 200 in 10ms (compile: 4ms, render: 6ms)
+ GET /api/perfume-search?q=bleu%20de%20chanel 200 in 438ms (compile: 4ms, render: 434ms)
+ POST / 200 in 780ms (compile: 7ms, proxy.ts: 156ms, render: 616ms)
+📦 Loading MY collection
+ GET / 200 in 895ms (compile: 8ms, proxy.ts: 156ms, render: 730ms)
+ POST / 200 in 735ms (compile: 7ms, proxy.ts: 93ms, render: 635ms)
+ POST / 200 in 851ms (compile: 7ms, proxy.ts: 143ms, render: 702ms)
+ POST / 200 in 1206ms (compile: 12ms, proxy.ts: 140ms, render: 1054ms)
+ POST / 200 in 736ms (compile: 9ms, proxy.ts: 154ms, render: 572ms)
+ ✓ Compiled in 179ms
+ ✓ Compiled in 236ms
+📦 Loading MY collection
+ GET / 200 in 604ms (compile: 208ms, proxy.ts: 227ms, render: 170ms)
+📦 Loading MY collection
+ GET / 200 in 187ms (compile: 6ms, proxy.ts: 100ms, render: 81ms)
+ POST / 200 in 639ms (compile: 7ms, proxy.ts: 96ms, render: 535ms)
+ ✓ Compiled in 173ms
+📦 Loading MY collection
+ GET / 200 in 451ms (compile: 172ms, proxy.ts: 118ms, render: 161ms)
+📦 Loading MY collection
+ GET / 200 in 184ms (compile: 5ms, proxy.ts: 100ms, render: 79ms)
+ POST / 200 in 645ms (compile: 7ms, proxy.ts: 135ms, render: 503ms)
+ ✓ Compiled in 142ms
+📦 Loading MY collection
+ GET / 200 in 486ms (compile: 168ms, proxy.ts: 172ms, render: 147ms)
+📦 Loading MY collection
+ GET / 200 in 173ms (compile: 6ms, proxy.ts: 81ms, render: 87ms)
+ POST / 200 in 735ms (compile: 8ms, proxy.ts: 141ms, render: 586ms)
+ POST / 200 in 861ms (compile: 13ms, proxy.ts: 192ms, render: 655ms)
+ ✓ Compiled in 208ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 787ms (compile: 244ms, proxy.ts: 148ms, render: 395ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 404ms (compile: 8ms, proxy.ts: 163ms, render: 233ms)
+ POST / 200 in 689ms (compile: 6ms, proxy.ts: 90ms, render: 593ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 761ms (compile: 300ms, proxy.ts: 123ms, render: 338ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 320ms (compile: 7ms, proxy.ts: 106ms, render: 208ms)
+ POST / 200 in 585ms (compile: 7ms, proxy.ts: 90ms, render: 488ms)
+ ✓ Compiled in 250ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+📦 Loading MY collection
+ GET / 200 in 772ms (compile: 232ms, proxy.ts: 95ms, render: 445ms)
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 349ms (compile: 12ms, proxy.ts: 97ms, render: 240ms)
+ POST / 200 in 595ms (compile: 6ms, proxy.ts: 91ms, render: 498ms)
+ ✓ Compiled in 213ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+📦 Loading MY collection
+🌐 Loading users list
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 1093ms (compile: 248ms, proxy.ts: 160ms, render: 685ms)
+ GET / 200 in 528ms (compile: 11ms, proxy.ts: 173ms, render: 344ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 396ms (compile: 11ms, proxy.ts: 110ms, render: 276ms)
+👥 Found users: 2
+ GET /?view=explore 200 in 1031ms (compile: 7ms, proxy.ts: 261ms, render: 763ms)
+ POST / 200 in 552ms (compile: 5ms, proxy.ts: 86ms, render: 461ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ ✓ Compiled in 243ms
+ GET / 200 in 1249ms (compile: 6ms, proxy.ts: 81ms, render: 1162ms)
+ POST / 200 in 1045ms (compile: 292ms, proxy.ts: 81ms, render: 671ms)
+ ✓ Compiled in 123ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 651ms (compile: 226ms, proxy.ts: 136ms, render: 289ms)
+ POST / 200 in 561ms (compile: 10ms, proxy.ts: 130ms, render: 421ms)
+ ✓ Compiled in 91ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 883ms (compile: 330ms, proxy.ts: 113ms, render: 440ms)
+ POST / 200 in 639ms (compile: 10ms, proxy.ts: 108ms, render: 520ms)
+ ✓ Compiled in 130ms
+ ✓ Compiled in 119ms
+ ✓ Compiled in 119ms
+📦 Loading MY collection
+ ✓ Compiled in 127ms
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET /?category=Kwiatowe 200 in 761ms (compile: 186ms, proxy.ts: 150ms, render: 425ms)
+ POST /?category=Kwiatowe 200 in 936ms (compile: 224ms, proxy.ts: 84ms, render: 629ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET /?category=Kwiatowe 200 in 750ms (compile: 6ms, proxy.ts: 91ms, render: 653ms)
+ POST /?category=Kwiatowe 200 in 531ms (compile: 6ms, proxy.ts: 96ms, render: 428ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 360ms (compile: 6ms, proxy.ts: 79ms, render: 275ms)
+ POST / 200 in 489ms (compile: 5ms, proxy.ts: 105ms, render: 378ms)
+ POST / 200 in 783ms (compile: 9ms, proxy.ts: 140ms, render: 634ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 763ms (compile: 8ms, proxy.ts: 146ms, render: 609ms)
+ POST / 200 in 751ms (compile: 7ms, proxy.ts: 94ms, render: 650ms)
+ POST / 200 in 1093ms (compile: 6ms, proxy.ts: 163ms, render: 924ms)
+ ✓ Compiled in 459ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 1283ms (compile: 270ms, proxy.ts: 542ms, render: 472ms)
+ POST / 200 in 696ms (compile: 7ms, proxy.ts: 94ms, render: 595ms)
+ ✓ Compiled in 149ms
+ ✓ Compiled in 135ms
+ ✓ Compiled in 273ms
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+📦 Loading MY collection
+ GET / 200 in 1147ms (compile: 305ms, proxy.ts: 215ms, render: 627ms)
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 488ms (compile: 11ms, proxy.ts: 172ms, render: 305ms)
+ POST / 200 in 676ms (compile: 14ms, proxy.ts: 93ms, render: 569ms)
+ ✓ Compiled in 138ms
+ POST / 200 in 986ms (compile: 269ms, proxy.ts: 132ms, render: 585ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 1226ms (compile: 7ms, proxy.ts: 142ms, render: 1077ms)
+ POST / 200 in 791ms (compile: 8ms, proxy.ts: 100ms, render: 683ms)
+ POST / 200 in 878ms (compile: 9ms, proxy.ts: 167ms, render: 702ms)
+ POST / 200 in 1736ms (compile: 7ms, proxy.ts: 406ms, render: 1322ms)
+ POST / 200 in 904ms (compile: 7ms, proxy.ts: 200ms, render: 697ms)
+ POST / 200 in 620ms (compile: 6ms, proxy.ts: 79ms, render: 535ms)
+ GET /api/perfume-search?q=bleu 200 in 377ms (compile: 6ms, render: 371ms)
+ GET /api/perfume-search?q=bleu%20de%20cha 200 in 268ms (compile: 4ms, render: 264ms)
+ GET /api/perfume-search?q=l%60ime 200 in 406ms (compile: 4ms, render: 403ms)
+ POST / 200 in 808ms (compile: 6ms, proxy.ts: 156ms, render: 646ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 841ms (compile: 6ms, proxy.ts: 187ms, render: 649ms)
+ POST / 200 in 930ms (compile: 6ms, proxy.ts: 96ms, render: 827ms)
+ POST / 200 in 827ms (compile: 6ms, proxy.ts: 203ms, render: 617ms)
+ POST / 200 in 803ms (compile: 7ms, proxy.ts: 149ms, render: 648ms)
+ POST / 200 in 743ms (compile: 7ms, proxy.ts: 152ms, render: 584ms)
+ POST / 200 in 717ms (compile: 6ms, proxy.ts: 152ms, render: 559ms)
+ POST / 200 in 939ms (compile: 11ms, proxy.ts: 211ms, render: 716ms)
+ POST / 200 in 890ms (compile: 7ms, proxy.ts: 160ms, render: 722ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+ GET / 200 in 788ms (compile: 30ms, proxy.ts: 250ms, render: 509ms)
+ POST / 200 in 472ms (compile: 7ms, proxy.ts: 91ms, render: 375ms)
+ POST / 200 in 1041ms (compile: 7ms, proxy.ts: 167ms, render: 868ms)
+ POST / 200 in 951ms (compile: 6ms, proxy.ts: 196ms, render: 749ms)
+ POST / 200 in 1069ms (compile: 12ms, proxy.ts: 204ms, render: 853ms)
+ POST / 200 in 908ms (compile: 10ms, proxy.ts: 153ms, render: 745ms)
+ POST / 200 in 888ms (compile: 7ms, proxy.ts: 204ms, render: 677ms)
+ POST / 200 in 1187ms (compile: 11ms, proxy.ts: 247ms, render: 929ms)
+ POST / 200 in 1498ms (compile: 9ms, proxy.ts: 427ms, render: 1062ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 1698ms (compile: 10ms, proxy.ts: 151ms, render: 1537ms)
+ POST / 200 in 647ms (compile: 10ms, proxy.ts: 105ms, render: 532ms)
+ POST / 200 in 818ms (compile: 6ms, proxy.ts: 136ms, render: 676ms)
+ POST / 200 in 4.3s (compile: 8ms, proxy.ts: 182ms, render: 4.1s)
+ POST / 200 in 996ms (compile: 9ms, proxy.ts: 165ms, render: 822ms)
+ POST / 200 in 401ms (compile: 7ms, proxy.ts: 197ms, render: 197ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 686ms (compile: 8ms, proxy.ts: 159ms, render: 519ms)
+ POST / 200 in 891ms (compile: 9ms, proxy.ts: 90ms, render: 792ms)
+ POST / 200 in 836ms (compile: 7ms, proxy.ts: 263ms, render: 566ms)
+ POST / 200 in 727ms (compile: 6ms, proxy.ts: 153ms, render: 569ms)
+ POST / 200 in 889ms (compile: 6ms, proxy.ts: 138ms, render: 746ms)
+ POST / 200 in 868ms (compile: 7ms, proxy.ts: 191ms, render: 670ms)
+📦 Loading MY collection
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching perfumes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column perfumes.position does not exist'
+}
+Error fetching brand positions: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.notifications'",
+  message: "Could not find the table 'public.brand_positions' in the schema cache"
+}
+ GET / 200 in 688ms (compile: 8ms, proxy.ts: 120ms, render: 560ms)
+ POST / 200 in 721ms (compile: 11ms, proxy.ts: 114ms, render: 596ms)
+ POST / 200 in 737ms (compile: 6ms, proxy.ts: 210ms, render: 521ms)
+ POST / 200 in 1757ms (compile: 5ms, proxy.ts: 138ms, render: 1614ms)
+ POST / 200 in 1167ms (compile: 6ms, proxy.ts: 333ms, render: 828ms)
+ POST / 200 in 884ms (compile: 7ms, proxy.ts: 202ms, render: 675ms)
+ POST / 200 in 712ms (compile: 8ms, proxy.ts: 160ms, render: 544ms)
+📦 Loading MY collection
+ GET / 200 in 978ms (compile: 9ms, proxy.ts: 164ms, render: 805ms)
+ POST / 200 in 709ms (compile: 7ms, proxy.ts: 101ms, render: 601ms)
+"revalidateTag" without the second argument is now deprecated, add second argument of "max" or use "updateTag". See more info here: https://nextjs.org/docs/messages/revalidate-tag-single-arg
+📦 Loading MY collection
+📦 Loading MY collection
+ POST / 200 in 1023ms (compile: 8ms, proxy.ts: 176ms, render: 839ms)
+ GET / 200 in 746ms (compile: 7ms, proxy.ts: 151ms, render: 589ms)
+ POST / 200 in 707ms (compile: 6ms, proxy.ts: 101ms, render: 600ms)
+📦 Loading MY collection
+ GET / 200 in 841ms (compile: 5ms, proxy.ts: 390ms, render: 446ms)
+ POST / 200 in 617ms (compile: 5ms, proxy.ts: 95ms, render: 517ms)
+Error reordering perfumes: {
+  code: '23502',
+  details: null,
+  hint: null,
+  message: 'null value in column "name" of relation "perfumes" violates not-null constraint'
+}
+ POST / 200 in 356ms (compile: 5ms, proxy.ts: 137ms, render: 214ms)
+📦 Loading MY collection
+ GET / 200 in 700ms (compile: 8ms, proxy.ts: 94ms, render: 598ms)
+ POST / 200 in 722ms (compile: 8ms, proxy.ts: 90ms, render: 624ms)
+ POST / 200 in 956ms (compile: 7ms, proxy.ts: 205ms, render: 745ms)
+ POST / 200 in 760ms (compile: 6ms, proxy.ts: 156ms, render: 598ms)
+ POST / 200 in 744ms (compile: 7ms, proxy.ts: 134ms, render: 603ms)
+ ✓ Compiled in 234ms
+ ✓ Compiled in 302ms
+ POST / 200 in 1529ms (compile: 295ms, proxy.ts: 198ms, render: 1035ms)
+ ✓ Compiled in 125ms
+📦 Loading MY collection
+ GET / 200 in 1400ms (compile: 242ms, proxy.ts: 150ms, render: 1008ms)
+ POST / 200 in 837ms (compile: 6ms, proxy.ts: 126ms, render: 706ms)
+"revalidateTag" without the second argument is now deprecated, add second argument of "max" or use "updateTag". See more info here: https://nextjs.org/docs/messages/revalidate-tag-single-arg
+📦 Loading MY collection
+📦 Loading MY collection
+ POST / 200 in 998ms (compile: 20ms, proxy.ts: 156ms, render: 822ms)
+ GET / 200 in 679ms (compile: 9ms, proxy.ts: 222ms, render: 447ms)
+ POST / 200 in 984ms (compile: 18ms, proxy.ts: 94ms, render: 872ms)
+"revalidateTag" without the second argument is now deprecated, add second argument of "max" or use "updateTag". See more info here: https://nextjs.org/docs/messages/revalidate-tag-single-arg
+📦 Loading MY collection
+📦 Loading MY collection
+ POST / 200 in 1165ms (compile: 7ms, proxy.ts: 101ms, render: 1056ms)
+ GET / 200 in 927ms (compile: 27ms, proxy.ts: 215ms, render: 685ms)
+ POST / 200 in 703ms (compile: 38ms, proxy.ts: 143ms, render: 522ms)
+Error reordering perfumes: {
+  code: '23502',
+  details: null,
+  hint: null,
+  message: 'null value in column "name" of relation "perfumes" violates not-null constraint'
+}
+ POST / 200 in 277ms (compile: 6ms, proxy.ts: 92ms, render: 178ms)
+Error reordering perfumes: {
+  code: '23502',
+  details: null,
+  hint: null,
+  message: 'null value in column "name" of relation "perfumes" violates not-null constraint'
+}
+ POST / 200 in 261ms (compile: 6ms, proxy.ts: 85ms, render: 170ms)
+📦 Loading MY collection
+ GET / 200 in 693ms (compile: 7ms, proxy.ts: 136ms, render: 550ms)
+ POST / 200 in 620ms (compile: 7ms, proxy.ts: 90ms, render: 523ms)
+"revalidateTag" without the second argument is now deprecated, add second argument of "max" or use "updateTag". See more info here: https://nextjs.org/docs/messages/revalidate-tag-single-arg
+📦 Loading MY collection
+📦 Loading MY collection
+ POST / 200 in 847ms (compile: 6ms, proxy.ts: 160ms, render: 681ms)
+ GET / 200 in 553ms (compile: 6ms, proxy.ts: 156ms, render: 391ms)
+ POST / 200 in 569ms (compile: 6ms, proxy.ts: 117ms, render: 447ms)
+Error reordering perfumes: {
+  code: '23502',
+  details: null,
+  hint: null,
+  message: 'null value in column "name" of relation "perfumes" violates not-null constraint'
+}
+ POST / 200 in 354ms (compile: 9ms, proxy.ts: 163ms, render: 181ms)
+"revalidateTag" without the second argument is now deprecated, add second argument of "max" or use "updateTag". See more info here: https://nextjs.org/docs/messages/revalidate-tag-single-arg
+📦 Loading MY collection
+ POST / 200 in 668ms (compile: 7ms, proxy.ts: 122ms, render: 539ms)
+📦 Loading MY collection
+ GET / 200 in 549ms (compile: 8ms, proxy.ts: 146ms, render: 395ms)
+ POST / 200 in 586ms (compile: 6ms, proxy.ts: 92ms, render: 488ms)
+Error reordering perfumes: {
+  code: '23502',
+  details: null,
+  hint: null,
+  message: 'null value in column "name" of relation "perfumes" violates not-null constraint'
+}
+ POST / 200 in 276ms (compile: 5ms, proxy.ts: 92ms, render: 179ms)
+ POST / 200 in 300ms (compile: 8ms, proxy.ts: 97ms, render: 196ms)
+ POST / 200 in 320ms (compile: 10ms, proxy.ts: 121ms, render: 189ms)
+ POST / 200 in 732ms (compile: 6ms, proxy.ts: 149ms, render: 577ms)
+ ✓ Compiled in 191ms
+ ✓ Compiled in 295ms
+ POST / 200 in 941ms (compile: 561ms, proxy.ts: 97ms, render: 283ms)
+ ✓ Compiled in 104ms
+ POST / 200 in 820ms (compile: 387ms, proxy.ts: 165ms, render: 268ms)
+ ✓ Compiled in 190ms
+ GET /api/perfume-search?q=bleu 200 in 488ms (compile: 6ms, render: 483ms)
+ POST / 200 in 2.3s (compile: 251ms, proxy.ts: 144ms, render: 1858ms)
+ ✓ Compiled in 117ms

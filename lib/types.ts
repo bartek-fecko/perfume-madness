@@ -12,6 +12,7 @@ export interface Perfume {
   categories: string[];
   image_url: string | null;
   is_favorite: boolean;
+  position: number;
   created_at: string;
   updated_at: string;
   user_email?: string;

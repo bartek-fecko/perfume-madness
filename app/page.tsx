@@ -6,6 +6,7 @@ import {
   getUserPerfumes,
   getUserProfile,
   getCategoryCounts,
+  getBrandPositions,
 } from "@/lib/actions/perfumes";
 import { TopHeader } from "@/components/top-header";
 import { DashboardContent } from "@/components/dashboard-content";
@@ -44,12 +45,13 @@ export default async function HomePage({ searchParams }: PageProps) {
   let favorites: Perfume[] = [];
   let users: any[] = [];
   let selectedUserProfile: any = null;
+  let brandOrder: Record<string, number> = {};
 
   if (user) {
     if (viewMode === "my") {
       // TRYB: Moja kolekcja
       console.log("📦 Loading MY collection");
-      [perfumes, categoryCounts, favorites] = await Promise.all([
+      [perfumes, categoryCounts, favorites, brandOrder] = await Promise.all([
         getPerfumes({
           userId: user.id,
           category,
@@ -59,21 +61,24 @@ export default async function HomePage({ searchParams }: PageProps) {
         }),
         getCategoryCounts(user.id),
         getPerfumes({ userId: user.id, favoritesOnly: true }),
+        getBrandPositions(user.id),
       ]);
     } else if (selectedUserId) {
       // TRYB: Kolekcja wybranego użytkownika
       console.log("👤 Loading user collection:", selectedUserId);
-      [perfumes, selectedUserProfile, categoryCounts, favorites] = await Promise.all([
-        getUserPerfumes(selectedUserId, {
-          category,
-          search,
-          sortBy,
-          sortDirection,
-        }),
-        getUserProfile(selectedUserId),
-        getCategoryCounts(selectedUserId),
-        getPerfumes({ userId: selectedUserId, favoritesOnly: true }),
-      ]);
+      [perfumes, selectedUserProfile, categoryCounts, favorites, brandOrder] =
+        await Promise.all([
+          getUserPerfumes(selectedUserId, {
+            category,
+            search,
+            sortBy,
+            sortDirection,
+          }),
+          getUserProfile(selectedUserId),
+          getCategoryCounts(selectedUserId),
+          getPerfumes({ userId: selectedUserId, favoritesOnly: true }),
+          getBrandPositions(selectedUserId),
+        ]);
     } else {
       // TRYB: Lista użytkowników do eksploracji
       console.log("🌐 Loading users list");
@@ -101,6 +106,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             initialUsers={users}
             selectedUserId={selectedUserId}
             selectedUserProfile={selectedUserProfile}
+            initialBrandOrder={brandOrder}
           />
         </Suspense>
       </div>
