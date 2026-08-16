@@ -32,6 +32,20 @@ export interface Perfume {
   user_avatar?: string;
 }
 
+export interface ToTryPerfume {
+  id: string;
+  source_id: string;
+  name: string;
+  brand: string;
+  year: number | null;
+  rating: number | null;
+  image_url: string | null;
+  notes: string[];
+  categories: string[];
+  description: string | null;
+  created_at: string;
+}
+
 export interface UserFollow {
   id: string;
   follower_id: string;

@@ -8,12 +8,14 @@ import {
   getCategoryCounts,
   getBrandPositions,
 } from "@/lib/actions/perfumes";
+import { getToTryList } from "@/lib/actions/to-try";
 import { DashboardContent } from "@/components/dashboard-content";
 import type {
   PerfumeCategory,
   SortOption,
   SortDirection,
   Perfume,
+  ToTryPerfume,
 } from "@/lib/types";
 
 interface PageProps {
@@ -42,6 +44,7 @@ export default async function HomePage({ searchParams }: PageProps) {
   let perfumes: Perfume[] = [];
   let categoryCounts: Record<string, number> = {};
   let favorites: Perfume[] = [];
+  let toTryList: ToTryPerfume[] = [];
   let users: any[] = [];
   let selectedUserProfile: any = null;
   let brandOrder: Record<string, number> = {};
@@ -50,12 +53,14 @@ export default async function HomePage({ searchParams }: PageProps) {
     if (viewMode === "my") {
       // TRYB: Moja kolekcja
       console.log("📦 Loading MY collection");
-      [perfumes, categoryCounts, favorites, brandOrder] = await Promise.all([
-        getPerfumes({ userId: user.id }),
-        getCategoryCounts(user.id),
-        getPerfumes({ userId: user.id, favoritesOnly: true }),
-        getBrandPositions(user.id),
-      ]);
+      [perfumes, categoryCounts, favorites, brandOrder, toTryList] =
+        await Promise.all([
+          getPerfumes({ userId: user.id }),
+          getCategoryCounts(user.id),
+          getPerfumes({ userId: user.id, favoritesOnly: true }),
+          getBrandPositions(user.id),
+          getToTryList(),
+        ]);
     } else if (selectedUserId) {
       // TRYB: Kolekcja wybranego użytkownika
       console.log("👤 Loading user collection:", selectedUserId);
@@ -82,6 +87,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           user={user}
           initialPerfumes={perfumes}
           initialFavorites={favorites}
+          initialToTry={toTryList}
           initialCategoryCounts={categoryCounts}
           initialCategory={category}
           initialSearch={search}

@@ -20,7 +20,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, FlaskConical, Star } from "lucide-react";
+import { GripVertical, Star } from "lucide-react";
 import { PerfumeCard } from "./perfume-card";
 import {
   toggleFavorite,
@@ -427,10 +427,12 @@ function SortableBrandTile({
       ref={setNodeRef}
       style={style}
       className={
-        "group text-left rounded-lg border border-border/70 bg-card p-1.5 shadow-[0_1px_3px_oklch(0_0_0/0.06)] hover:border-primary/30 hover:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer" +
+        "group text-left rounded-lg border border-border/70 bg-secondary/40 overflow-hidden cursor-pointer" +
+        " hover:border-primary/30 hover:bg-secondary/60 transition-all duration-200" +
+        " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" +
         (isDragging
           ? " shadow-lg ring-2 ring-primary/40 will-change-transform transition-none"
-          : " transition-[transform,box-shadow,border-color,opacity] duration-200")
+          : "")
       }
       onClick={onOpen}
       onKeyDown={(e) => {
@@ -443,31 +445,23 @@ function SortableBrandTile({
       tabIndex={0}
       aria-label={`Otwórz markę ${group.label}`}
     >
-      <div className="relative mb-2 aspect-square rounded-md overflow-hidden bg-secondary/40">
+      <div className="relative aspect-square bg-white overflow-hidden">
         {group.perfumes.length === 1 ? (
-          <>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <FlaskConical className="w-8 h-8 text-muted-foreground/30" />
-            </div>
-            <TileImage
-              src={group.perfumes[0].image_url || "/placeholder.svg"}
-              alt={group.perfumes[0].name}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              className="absolute inset-0 w-full h-full object-contain p-2"
-            />
-          </>
+          <TileImage
+            src={group.perfumes[0].image_url || "/placeholder.svg"}
+            alt={group.perfumes[0].name}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+            className="absolute inset-0 w-full h-full object-contain p-1"
+          />
         ) : (
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px">
             {group.perfumes.slice(0, 4).map((p) => (
-              <div key={p.id} className="relative overflow-hidden bg-secondary/40">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <FlaskConical className="w-4 h-4 text-muted-foreground/30" />
-                </div>
+              <div key={p.id} className="relative overflow-hidden bg-white">
                 <TileImage
                   src={p.image_url || "/placeholder.svg"}
                   alt={p.name}
                   sizes="(max-width: 640px) 25vw, (max-width: 1024px) 12vw, 10vw"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain p-0.5"
                 />
               </div>
             ))}
@@ -495,33 +489,32 @@ function SortableBrandTile({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-1.5">
-        <span className="font-semibold text-[13px] text-foreground truncate">
-          {group.label}
-        </span>
-        <Badge
-          variant="secondary"
-          className="shrink-0 font-normal rounded-full px-2 py-0 text-[10px]"
-        >
-          {group.perfumes.length}
-        </Badge>
-      </div>
-
-      {group.perfumes[0] && (
-        <div className="mt-1">
-          <p className="text-[11px] font-medium text-foreground/70 truncate">
+      <div className="p-2 min-w-0">
+        <div className="flex items-center justify-between gap-1.5">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wide truncate">
+            {group.label}
+          </p>
+          <Badge
+            variant="secondary"
+            className="shrink-0 font-normal rounded-full px-2 py-0 text-[10px]"
+          >
+            {group.perfumes.length}
+          </Badge>
+        </div>
+        {group.perfumes[0] && (
+          <p className="text-xs font-medium text-foreground truncate">
             {group.perfumes[0].name}
           </p>
-          {avgRating !== null ? (
-            <div className="flex items-center gap-1 mt-0.5">
-              <Star className="w-2.5 h-2.5 text-primary fill-primary shrink-0" />
-              <span className="text-[10px] font-medium text-muted-foreground">
-                {avgRating.toFixed(1)}
-              </span>
-            </div>
-          ) : null}
-        </div>
-      )}
+        )}
+        {avgRating !== null ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {avgRating.toFixed(1)}
+            </span>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

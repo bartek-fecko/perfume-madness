@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { SiteHeader } from "@/components/site-header";
 import { FavoritesSection } from "@/components/favorites-section";
+import { TryListSection } from "@/components/try-list-section";
 import { CollectionStats } from "@/components/collection-stats";
 import { PerfumeGrid } from "@/components/perfume-grid";
 import { AddPerfumeModal } from "@/components/add-perfume-modal";
@@ -31,12 +32,14 @@ import type {
   SortOption,
   SortDirection,
   User,
+  ToTryPerfume,
 } from "@/lib/types";
 
 interface DashboardContentProps {
   user: User | null;
   initialPerfumes: Perfume[];
   initialFavorites: Perfume[];
+  initialToTry: ToTryPerfume[];
   initialCategoryCounts: Record<string, number>;
   initialCategory: PerfumeCategory;
   initialSearch: string;
@@ -103,6 +106,7 @@ export function DashboardContent({
   user,
   initialPerfumes,
   initialFavorites,
+  initialToTry,
   initialCategoryCounts,
   initialCategory,
   initialSearch,
@@ -397,9 +401,14 @@ export function DashboardContent({
           <div className="perfume-content">
             <CollectionStats userId={user.id} />
 
-            {initialFavorites.length > 0 && (
-              <div className="mb-3">
+            {initialFavorites.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3 items-stretch">
                 <FavoritesSection favorites={initialFavorites} />
+                <TryListSection initialItems={initialToTry} />
+              </div>
+            ) : (
+              <div className="mb-3">
+                <TryListSection initialItems={initialToTry} />
               </div>
             )}
 
