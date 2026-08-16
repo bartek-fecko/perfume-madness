@@ -143,7 +143,7 @@ export function TryListSection({ initialItems }: TryListSectionProps) {
       key={item.id}
       className="group flex items-center gap-2 rounded-lg bg-secondary/40 border border-border/70 p-1.5 hover:border-primary/30 transition-all duration-200"
     >
-      <div className="relative w-10 h-10 shrink-0 rounded-md overflow-hidden bg-white">
+      <div className="relative w-10 h-10 shrink-0 rounded-md overflow-hidden bg-white dark:bg-card">
         <Image
           src={item.image_url || "/placeholder.svg"}
           alt={item.name}

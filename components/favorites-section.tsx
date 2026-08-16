@@ -45,7 +45,7 @@ export function FavoritesSection({
         "hover:border-primary/30 transition-all duration-200 cursor-pointer"
       )}
     >
-      <div className="relative w-10 h-10 shrink-0 rounded-md overflow-hidden bg-white">
+      <div className="relative w-10 h-10 shrink-0 rounded-md overflow-hidden bg-white dark:bg-card">
         <Image
           src={perfume.image_url || "/placeholder.svg"}
           alt={perfume.name}

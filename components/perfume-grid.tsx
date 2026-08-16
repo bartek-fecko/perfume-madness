@@ -163,6 +163,11 @@ export function PerfumeGrid({
     brandGroups.find((g) => g.key === openBrandKey) ?? null;
 
   const handleOpenBrand = (key: string) => {
+    const group = brandGroups.find((g) => g.key === key);
+    if (group && group.perfumes.length === 1) {
+      router.push(`/perfume/${group.perfumes[0].id}`);
+      return;
+    }
     setOpenBrandKey(key);
   };
 
@@ -341,9 +346,7 @@ export function PerfumeGrid({
           </DialogHeader>
 
           <div className="max-h-[70vh] overflow-y-auto overscroll-contain will-change-transform px-4 sm:px-6 pb-4 sm:pb-6">
-            <div
-              className={`grid ${modalCols} gap-3 sm:gap-4 [&>*]:[content-visibility:auto] [&>*]:[contain-intrinsic-size:auto_400px]`}
-            >
+            <div className={`grid ${modalCols} gap-3 sm:gap-4`}>
               {displayGroup?.perfumes.map((perfume) => (
                 <PerfumeCard
                   key={perfume.id}
@@ -445,7 +448,7 @@ function SortableBrandTile({
       tabIndex={0}
       aria-label={`Otwórz markę ${group.label}`}
     >
-      <div className="relative aspect-square bg-white overflow-hidden">
+      <div className="relative aspect-square bg-white dark:bg-card overflow-hidden">
         {group.perfumes.length === 1 ? (
           <TileImage
             src={group.perfumes[0].image_url || "/placeholder.svg"}
@@ -456,7 +459,7 @@ function SortableBrandTile({
         ) : (
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px">
             {group.perfumes.slice(0, 4).map((p) => (
-              <div key={p.id} className="relative overflow-hidden bg-white">
+              <div key={p.id} className="relative overflow-hidden bg-white dark:bg-card">
                 <TileImage
                   src={p.image_url || "/placeholder.svg"}
                   alt={p.name}

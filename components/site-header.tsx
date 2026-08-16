@@ -387,7 +387,7 @@ export function SiteHeader({
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_-4px_rgba(0,0,0,0.06)]">
       <div className={`h-16 px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full ${innerClass} mx-auto`}>
         <div className="flex items-center gap-2.5 min-w-0 shrink-0">
-          <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white shrink-0 shadow-sm">
+          <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white dark:bg-card shrink-0 shadow-sm">
             <Image
               src="/logo.jpg"
               alt="PerfumeMadness logo"
