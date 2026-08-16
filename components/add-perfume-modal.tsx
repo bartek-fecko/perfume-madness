@@ -4,7 +4,7 @@ import React from "react";
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { X, Upload, Star, StarHalf, Search, Loader2 } from "lucide-react";
+import { Upload, Star, StarHalf, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/dialog";
 import { createPerfume, getUserBrands } from "@/lib/actions/perfumes";
 import { BrandCombobox } from "@/components/brand-combobox";
+import { WearSeasonsField } from "@/components/wear-seasons-field";
+import { DragDropNotesEditor } from "@/components/drag-drop-notes-editor";
+import { resolveNoteImage } from "@/lib/notes-dictionary";
 import { cn } from "@/lib/utils";
+import type { PerfumeNotes, FragranceNote } from "@/lib/types";
 
 const categories = [
   "Kwiatowe",
@@ -37,6 +41,86 @@ const categories = [
   "Wodne",
 ];
 
+function AddPerfumeNotesEditor({
+  notes,
+  setNotes,
+}: {
+  notes: PerfumeNotes;
+  setNotes: React.Dispatch<React.SetStateAction<PerfumeNotes>>;
+}) {
+  const [newNoteName, setNewNoteName] = useState("");
+  const [newNoteImage, setNewNoteImage] = useState("");
+  const [activeSection, setActiveSection] = useState<"top" | "heart" | "base">("top");
+  const notePreview = newNoteImage.trim() || resolveNoteImage(newNoteName);
+
+  const addNote = (section: "top" | "heart" | "base") => {
+    if (!newNoteName.trim()) return;
+    const newNote: FragranceNote = {
+      name: newNoteName.trim(),
+      image_url: newNoteImage.trim() || undefined,
+    };
+    setNotes((prev) => ({
+      ...prev,
+      [section]: [...prev[section], newNote],
+    }));
+    setNewNoteName("");
+    setNewNoteImage("");
+  };
+
+  return (
+    <div className="space-y-3">
+      <Label className="text-sm font-medium text-foreground">Nuty zapachowe</Label>
+      
+      {/* Add note form */}
+      <div className="p-3 bg-muted/30 rounded-lg border border-border">
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <select
+            value={activeSection}
+            onChange={(e) => setActiveSection(e.target.value as "top" | "heart" | "base")}
+            className="px-2 py-1.5 bg-background border border-border rounded text-xs"
+          >
+            <option value="top">Nuty głowy (Top)</option>
+            <option value="heart">Nuty serca (Heart)</option>
+            <option value="base">Nuty bazy (Base)</option>
+          </select>
+          <Input
+            value={newNoteName}
+            onChange={(e) => setNewNoteName(e.target.value)}
+            placeholder="Nazwa nuty (np. Bergamotka)"
+            className="flex-1"
+          />
+          <Input
+            value={newNoteImage}
+            onChange={(e) => setNewNoteImage(e.target.value)}
+            placeholder="URL obrazu (opcjonalnie)"
+            className="flex-1"
+          />
+          {notePreview && (
+            <div className="relative w-10 h-10 flex-shrink-0 self-center">
+              <img
+                src={notePreview}
+                alt={newNoteName}
+                className="w-full h-full object-cover rounded border border-border"
+              />
+            </div>
+          )}
+          <Button
+            onClick={() => addNote(activeSection)}
+            disabled={!newNoteName.trim()}
+            className="w-full sm:w-auto"
+            size="sm"
+          >
+            Dodaj
+          </Button>
+        </div>
+      </div>
+
+      {/* Current notes */}
+      <DragDropNotesEditor notes={notes} onChange={setNotes} />
+    </div>
+  );
+}
+
 interface PerfumeSearchResult {
   id: string;
   name: string;
@@ -45,6 +129,13 @@ interface PerfumeSearchResult {
   rating: number | null;
   image: string | null;
   notes: string[];
+  notesWithDetails?: {
+    name: string;
+    enName: string;
+    intensity: number;
+    imageUrl?: string;
+    category?: string;
+  }[];
   categories: string[];
   description: string;
 }
@@ -63,8 +154,9 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState<PerfumeNotes>({ top: [], heart: [], base: [] });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [wearSeasons, setWearSeasons] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
@@ -157,17 +249,62 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
     }, waitUntil);
   }, [name]);
 
-  const handleSelectResult = (result: PerfumeSearchResult) => {
+const handleSelectResult = (result: PerfumeSearchResult) => {
     suppressSearch.current = true;
     setShowSearchResults(false);
     setSearchError(null);
     setName(result.name);
     setBrand(result.brand);
-    if (result.notes.length > 0) setNotes(result.notes.join(", "));
-    if (result.image) setImageUrl(result.image);
-    if (result.description) setDescription(result.description);
-    if (result.categories.length > 0)
-      setSelectedCategories(result.categories);
+
+    const applyNotes = (notesData: PerfumeSearchResult) => {
+      if (notesData.notesWithDetails && notesData.notesWithDetails.length > 0) {
+        // API returns notes in order: TOP -> HEART -> BASE
+        // Use category to determine section (heuristic classification from API)
+        const top: { name: string; image_url?: string }[] = [];
+        const heart: { name: string; image_url?: string }[] = [];
+        const base: { name: string; image_url?: string }[] = [];
+
+        for (const n of notesData.notesWithDetails) {
+          const cat = n.category || "";
+          const noteObj = { name: n.name, image_url: n.imageUrl };
+          
+          // Same heuristic as API: Cytrusowe/Zielone/Aromatyczne/Świeże -> TOP
+          // Kwiatowe/Korzenne/Orientalne -> HEART  
+          // Drzewne/Piżmowe/Słodkie/Ambrowe/Skórzane/Mchowe -> BASE
+          if (["Cytrusowe", "Zielone", "Aromatyczne", "Świeże", "Owocowe"].includes(cat)) {
+            top.push(noteObj);
+          } else if (["Kwiatowe", "Korzenne", "Orientalne"].includes(cat)) {
+            heart.push(noteObj);
+          } else {
+            base.push(noteObj);
+          }
+        }
+
+        // Fallback: if any section empty, distribute proportionally
+        if (top.length === 0 && heart.length === 0 && base.length === 0) {
+          const sortedNotes = [...notesData.notesWithDetails].sort((a, b) => b.intensity - a.intensity);
+          const topCount = Math.max(1, Math.ceil(sortedNotes.length * 0.3));
+          const heartCount = Math.max(1, Math.ceil(sortedNotes.length * 0.4));
+          top.push(...sortedNotes.slice(0, topCount).map(n => ({ name: n.name, image_url: n.imageUrl })));
+          heart.push(...sortedNotes.slice(topCount, topCount + heartCount).map(n => ({ name: n.name, image_url: n.imageUrl })));
+          base.push(...sortedNotes.slice(topCount + heartCount).map(n => ({ name: n.name, image_url: n.imageUrl })));
+        }
+
+        setNotes({ top, heart, base });
+      } else if (notesData.notes.length > 0) {
+        setNotes({
+          top: notesData.notes.map((n) => ({ name: n, image_url: undefined })),
+          heart: [],
+          base: [],
+        });
+      }
+      if (notesData.image) setImageUrl(notesData.image);
+      if (notesData.description) setDescription(notesData.description);
+      if (notesData.categories.length > 0)
+        setSelectedCategories(notesData.categories);
+    };
+
+    applyNotes(result);
     setErrors({});
   };
 
@@ -197,8 +334,9 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
     setRating(0);
     setHoverRating(0);
     setDescription("");
-    setNotes("");
+    setNotes({ top: [], heart: [], base: [] });
     setSelectedCategories([]);
+    setWearSeasons([]);
     setImageUrl("");
     setErrors({});
     setSearchResults([]);
@@ -218,11 +356,9 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
         price: Number.parseFloat(price),
         rating,
         description: description.trim() || undefined,
-        notes: notes
-          .split(",")
-          .map((n) => n.trim())
-          .filter(Boolean),
+        notes: notes,
         categories: selectedCategories,
+        wear_seasons: wearSeasons,
         image_url: imageUrl.trim() || undefined,
       });
 
@@ -239,7 +375,11 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
 
   const handleStarClick = (value: number) => {
     setRating(value);
-    setErrors((prev) => ({ ...prev, rating: undefined }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.rating;
+      return next;
+    });
   };
 
   const renderStarButton = (starValue: number) => {
@@ -514,17 +654,9 @@ export function AddPerfumeModal({ isOpen, onClose }: AddPerfumeModalProps) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">
-              Nuty zapachowe (oddzielone przecinkami)
-            </Label>
-            <Input
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Bergamotka, Wanilia, Sandałowiec"
-            />
-          </div>
+          <AddPerfumeNotesEditor notes={notes} setNotes={setNotes} />
+
+          <WearSeasonsField value={wearSeasons} onChange={setWearSeasons} />
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>

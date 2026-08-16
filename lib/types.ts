@@ -1,5 +1,16 @@
 "use server";
 
+export interface FragranceNote {
+  name: string;
+  image_url?: string;
+}
+
+export interface PerfumeNotes {
+  top: FragranceNote[];
+  heart: FragranceNote[];
+  base: FragranceNote[];
+}
+
 export interface Perfume {
   id: string;
   user_id: string;
@@ -8,8 +19,9 @@ export interface Perfume {
   price: number;
   rating: number;
   description: string | null;
-  notes: string[];
+  notes: PerfumeNotes;
   categories: string[];
+  wear_seasons: string[];
   image_url: string | null;
   is_favorite: boolean;
   position: number;

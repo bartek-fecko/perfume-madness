@@ -12,6 +12,7 @@ import {
   Trash2,
   MessageSquare,
   Send,
+  Flower2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +38,13 @@ import {
 } from "@/lib/actions/perfumes";
 import { addComment, deleteComment } from "@/lib/actions/comments";
 import { SiteHeader } from "@/components/site-header";
+import { WearSeasonsField } from "@/components/wear-seasons-field";
+import { DragDropNotesEditor } from "@/components/drag-drop-notes-editor";
+import { wearLabel, wearIcon, wearColorClass } from "@/lib/wear-options";
 import { cn } from "@/lib/utils";
-import type { Perfume, PerfumeComment, User } from "@/lib/types";
+import { resolveNoteImage } from "@/lib/notes-dictionary";
+import { categoryColor } from "@/lib/category-colors";
+import type { Perfume, PerfumeComment, User, PerfumeNotes, FragranceNote } from "@/lib/types";
 
 const allCategories = [
   "Kwiatowe",
@@ -67,8 +73,8 @@ interface PerfumeDetailProps {
 }
 
 // Funkcja do normalizacji URL/BASE64
-function normalizeImageUrl(url?: string) {
-  if (!url) return null;
+function normalizeImageUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
   if (url.startsWith("data:image/")) return url;
 
   // prosty check dla "gołego" Base64 bez prefixu
@@ -79,8 +85,190 @@ function normalizeImageUrl(url?: string) {
     new URL(url);
     return url;
   } catch {
-    return null;
+    return undefined;
   }
+}
+
+// Fragrantica-style notes pyramid: notes in each category arranged side by
+// side (flex-wrap), with a "pyramid" size gradient (heart = biggest).
+function NotesPyramid({
+  top,
+  heart,
+  base,
+}: {
+  top: FragranceNote[];
+  heart: FragranceNote[];
+  base: FragranceNote[];
+}) {
+  const sections = [
+    {
+      label: "Nuty głowy",
+      color: "#facc15",
+      notes: top,
+      imgClass: "w-10 h-10 sm:w-12 sm:h-12",
+    },
+    {
+      label: "Nuty serca",
+      color: "#f472b6",
+      notes: heart,
+      imgClass: "w-16 h-16 sm:w-20 sm:h-20",
+    },
+    {
+      label: "Nuty bazy",
+      color: "#a78bfa",
+      notes: base,
+      imgClass: "w-11 h-11 sm:w-14 sm:h-14",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+      {sections.map((section) => (
+        <div
+          key={section.label}
+          className="rounded-2xl border border-border bg-card/50 p-4 sm:p-5 flex flex-col"
+          style={{ borderTopWidth: 3, borderTopColor: section.color }}
+        >
+          <div className="flex items-center gap-2.5 mb-4">
+            <div
+              className="w-3.5 h-3.5 rounded-full"
+              style={{ backgroundColor: section.color }}
+            />
+            <h4 className="text-sm sm:text-base font-semibold text-foreground capitalize">
+              {section.label}
+            </h4>
+            <span className="text-xs text-muted-foreground">
+              ({section.notes.length})
+            </span>
+          </div>
+          {section.notes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Brak nut</p>
+          ) : (
+            <div className="flex flex-wrap justify-center items-end gap-3">
+              {section.notes.map((note, index) => {
+                const imageUrl =
+                  normalizeImageUrl(note.image_url) || resolveNoteImage(note.name);
+                return (
+                  <div
+                    key={`${section.label}-${index}`}
+                    className="group relative flex flex-col items-center text-center gap-1.5"
+                    title={note.name}
+                  >
+                    <div
+                      className={`relative flex-shrink-0 overflow-hidden rounded-md ring-1 ring-border/60 transition-all duration-300 group-hover:scale-110 group-hover:shadow-md group-hover:ring-primary/40 ${section.imgClass}`}
+                    >
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl}
+                          alt={note.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                          sizes="96px"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                          <Flower2 className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[11px] sm:text-sm font-medium text-foreground leading-tight whitespace-normal sm:whitespace-nowrap">
+                      {note.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Notes editor component for edit mode
+interface NotesEditorProps {
+  notesTop: FragranceNote[];
+  setNotesTop: React.Dispatch<React.SetStateAction<FragranceNote[]>>;
+  notesHeart: FragranceNote[];
+  setNotesHeart: React.Dispatch<React.SetStateAction<FragranceNote[]>>;
+  notesBase: FragranceNote[];
+  setNotesBase: React.Dispatch<React.SetStateAction<FragranceNote[]>>;
+}
+
+function NotesEditor({
+  notesTop,
+  setNotesTop,
+  notesHeart,
+  setNotesHeart,
+  notesBase,
+  setNotesBase,
+}: NotesEditorProps) {
+  const [newNoteName, setNewNoteName] = useState("");
+  const [newNoteImage, setNewNoteImage] = useState("");
+  const [activeSection, setActiveSection] = useState<"top" | "heart" | "base">("top");
+
+  const addNote = (section: "top" | "heart" | "base") => {
+    if (!newNoteName.trim()) return;
+    const newNote: FragranceNote = {
+      name: newNoteName.trim(),
+      image_url: newNoteImage.trim() || undefined,
+    };
+    if (section === "top") setNotesTop((prev) => [...prev, newNote]);
+    else if (section === "heart") setNotesHeart((prev) => [...prev, newNote]);
+    else setNotesBase((prev) => [...prev, newNote]);
+    setNewNoteName("");
+    setNewNoteImage("");
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add note form */}
+      <div className="p-4 bg-muted/30 rounded-lg border border-border">
+        <div className="flex flex-col sm:flex-row gap-3 mb-3">
+          <select
+            value={activeSection}
+            onChange={(e) => setActiveSection(e.target.value as "top" | "heart" | "base")}
+            className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          >
+            <option value="top">Nuty głowy (Top)</option>
+            <option value="heart">Nuty serca (Heart)</option>
+            <option value="base">Nuty bazy (Base)</option>
+          </select>
+          <Input
+            value={newNoteName}
+            onChange={(e) => setNewNoteName(e.target.value)}
+            placeholder="Nazwa nuty (np. Bergamotka, Wanilia)"
+            className="flex-1"
+          />
+          <Input
+            value={newNoteImage}
+            onChange={(e) => setNewNoteImage(e.target.value)}
+            placeholder="URL obrazu lub Base64 (opcjonalnie)"
+            className="flex-1"
+          />
+          <Button
+            onClick={() => addNote(activeSection)}
+            disabled={!newNoteName.trim()}
+            className="w-full sm:w-auto"
+            size="sm"
+          >
+            Dodaj nutę
+          </Button>
+        </div>
+      </div>
+
+      {/* Current notes */}
+      <DragDropNotesEditor
+        notes={{ top: notesTop, heart: notesHeart, base: notesBase }}
+        onChange={(next) => {
+          setNotesTop(next.top);
+          setNotesHeart(next.heart);
+          setNotesBase(next.base);
+        }}
+      />
+    </div>
+  );
 }
 
 export function PerfumeDetail({
@@ -103,9 +291,14 @@ export function PerfumeDetail({
   const [rating, setRating] = useState(perfume.rating);
   const [hoverRating, setHoverRating] = useState(0);
   const [description, setDescription] = useState(perfume.description || "");
-  const [notes, setNotes] = useState(perfume.notes?.join(", ") || "");
+  const [notesTop, setNotesTop] = useState<FragranceNote[]>(perfume.notes?.top || []);
+  const [notesHeart, setNotesHeart] = useState<FragranceNote[]>(perfume.notes?.heart || []);
+  const [notesBase, setNotesBase] = useState<FragranceNote[]>(perfume.notes?.base || []);
   const [categories, setCategories] = useState<string[]>(
     perfume.categories || [],
+  );
+  const [wearSeasons, setWearSeasons] = useState<string[]>(
+    perfume.wear_seasons || [],
   );
   const [imageUrl, setImageUrl] = useState(perfume.image_url || "");
   const [isFavorite, setIsFavorite] = useState(perfume.is_favorite);
@@ -129,11 +322,13 @@ export function PerfumeDetail({
         price: Number.parseFloat(price),
         rating,
         description: description || undefined,
-        notes: notes
-          .split(",")
-          .map((n) => n.trim())
-          .filter(Boolean),
+        notes: {
+          top: notesTop,
+          heart: notesHeart,
+          base: notesBase,
+        },
         categories,
+        wear_seasons: wearSeasons,
         image_url: imageUrl || undefined,
       });
 
@@ -152,8 +347,11 @@ export function PerfumeDetail({
     setPrice(perfume.price.toString());
     setRating(perfume.rating);
     setDescription(perfume.description || "");
-    setNotes(perfume.notes?.join(", ") || "");
+    setNotesTop(perfume.notes?.top || []);
+    setNotesHeart(perfume.notes?.heart || []);
+    setNotesBase(perfume.notes?.base || []);
     setCategories(perfume.categories || []);
+    setWearSeasons(perfume.wear_seasons || []);
     setImageUrl(perfume.image_url || "");
     setIsEditing(false);
     setError(null);
@@ -315,7 +513,7 @@ export function PerfumeDetail({
     });
   };
 
-  const previewImage = normalizeImageUrl(imageUrl);
+  const previewImage = normalizeImageUrl(imageUrl) ?? undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -324,10 +522,9 @@ export function PerfumeDetail({
         searchQuery=""
         onSearchChange={() => {}}
         hideSearch
-        innerClass="max-w-5xl"
       />
 
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <button
             type="button"
@@ -409,9 +606,9 @@ export function PerfumeDetail({
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)] xl:gap-10">
           {/* IMAGE SECTION */}
-          <div className="relative aspect-square bg-secondary/30 rounded-xl overflow-hidden">
+          <div className="relative aspect-[3/4] bg-secondary/30 rounded-xl overflow-hidden">
             {isEditing ? (
               <div className="absolute inset-0 p-4 flex flex-col">
                 <div className="mb-4">
@@ -432,7 +629,7 @@ export function PerfumeDetail({
                       src={imageUrl}
                       alt={name || "Podgląd"}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                       loading="lazy"
                       quality={85}
                       unoptimized
@@ -454,11 +651,11 @@ export function PerfumeDetail({
                 src={normalizeImageUrl(perfume.image_url) || "/placeholder.svg"}
                 alt={`${perfume.name} by ${perfume.brand}`}
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
                 unoptimized
                 quality={90}
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 420px"
               />
             )}
 
@@ -587,36 +784,26 @@ export function PerfumeDetail({
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {perfume.categories?.map((cat) => (
-                    <Badge key={cat} variant="secondary">
-                      {cat}
-                    </Badge>
-                  ))}
+                  {perfume.categories?.map((cat) => {
+                    const cc = categoryColor(cat);
+                    return (
+                      <Badge
+                        key={cat}
+                        className="border-transparent"
+                        style={{
+                          backgroundColor: cc.color,
+                          color: cc.text,
+                        }}
+                      >
+                        {cat}
+                      </Badge>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Notes */}
-            <div>
-              <h3 className="text-sm font-medium text-foreground mb-2">
-                Nuty zapachowe
-              </h3>
-              {isEditing ? (
-                <Input
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Bergamotka, Wanilia, Sandałowiec (oddzielone przecinkami)"
-                />
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {perfume.notes?.map((note) => (
-                    <Badge key={note} variant="outline">
-                      {note}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Notes removed from details column — now full-width section below */}
 
             {/* Description */}
             <div>
@@ -634,7 +821,64 @@ export function PerfumeDetail({
                 </p>
               )}
             </div>
+
+            {/* Kiedy nosić */}
+            {isEditing ? (
+              <WearSeasonsField
+                value={wearSeasons}
+                onChange={setWearSeasons}
+              />
+            ) : (
+              wearSeasons.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-foreground mb-2">
+                    Kiedy nosić
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {wearSeasons.map((ws) => {
+                      const Icon = wearIcon(ws);
+                      return (
+                        <Badge
+                          key={ws}
+                          variant="outline"
+                          className={wearColorClass(ws)}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {wearLabel(ws)}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )
+            )}
           </div>
+        </div>
+
+        {/* Notes — full-width section */}
+        <div className="mt-8 sm:mt-10">
+          <div className="flex items-center gap-2.5 mb-4 sm:mb-5">
+            <Flower2 className="w-5 h-5 text-primary" />
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+              Nuty zapachowe
+            </h2>
+          </div>
+          {isEditing ? (
+            <NotesEditor
+              notesTop={notesTop}
+              setNotesTop={setNotesTop}
+              notesHeart={notesHeart}
+              setNotesHeart={setNotesHeart}
+              notesBase={notesBase}
+              setNotesBase={setNotesBase}
+            />
+          ) : (
+            <NotesPyramid
+              top={perfume.notes?.top || []}
+              heart={perfume.notes?.heart || []}
+              base={perfume.notes?.base || []}
+            />
+          )}
         </div>
 
         <div className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8">

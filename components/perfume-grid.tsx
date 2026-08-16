@@ -159,11 +159,11 @@ export function PerfumeGrid({
   }, [optimisticPerfumes, brandOrder]);
 
   const [openBrandKey, setOpenBrandKey] = useState<string | null>(null);
-  const [displayGroup, setDisplayGroup] = useState<BrandGroup | null>(null);
+  const displayGroup =
+    brandGroups.find((g) => g.key === openBrandKey) ?? null;
 
-  const handleOpenBrand = (group: BrandGroup) => {
-    setOpenBrandKey(group.key);
-    setDisplayGroup(group);
+  const handleOpenBrand = (key: string) => {
+    setOpenBrandKey(key);
   };
 
   const handleCloseBrand = () => {
@@ -315,7 +315,7 @@ export function PerfumeGrid({
                 group={group}
                 isOwner={isOwner}
                 canReorder={canReorder}
-                onOpen={() => handleOpenBrand(group)}
+                onOpen={() => handleOpenBrand(group.key)}
               />
             ))}
           </div>

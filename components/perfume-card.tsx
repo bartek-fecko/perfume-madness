@@ -109,6 +109,13 @@ export const PerfumeCard = memo(function PerfumeCard({
     created_at,
   } = perfume;
 
+  // Flatten notes for display (top + heart + base)
+  const allNotes = [
+    ...(notes?.top || []),
+    ...(notes?.heart || []),
+    ...(notes?.base || []),
+  ].map((n) => n.name);
+
   const imageSrc = isValidImageUrl(image_url) ? image_url! : "/placeholder.svg";
   const isDataUrl = image_url?.startsWith("data:") ?? false;
   const dateAdded = formatDateAdded(created_at);
@@ -229,23 +236,23 @@ export const PerfumeCard = memo(function PerfumeCard({
 
           <StarRating rating={rating} />
 
-          {notes && notes.length > 0 && (
+          {allNotes.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2.5">
-              {notes.slice(0, 2).map((note) => (
+              {allNotes.slice(0, 2).map((note, idx) => (
                 <Badge
-                  key={note}
+                  key={idx}
                   variant="secondary"
                   className="text-[10px] font-normal px-2 py-0.5"
                 >
                   {note}
                 </Badge>
               ))}
-              {notes.length > 2 && (
+              {allNotes.length > 2 && (
                 <Badge
                   variant="secondary"
                   className="text-[10px] font-normal px-2 py-0.5"
                 >
-                  +{notes.length - 2}
+                  +{allNotes.length - 2}
                 </Badge>
               )}
             </div>

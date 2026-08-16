@@ -1,6 +1,8 @@
 const RAPIDAPI_HOST = "fragrance-api.p.rapidapi.com";
 const RAPIDAPI_BASE = `https://${RAPIDAPI_HOST}`;
 
+import { translateNote } from "./notes-dictionary";
+
 interface RapidApiFragranceHit {
   id: number;
   name: string;
@@ -37,17 +39,23 @@ export interface PerfumeSearchResult {
   rating: number | null;
   image: string | null;
   notes: string[];
+  notesWithDetails?: {
+    name: string;
+    enName: string;
+    intensity: number;
+    imageUrl?: string;
+    category?: string;
+  }[];
   categories: string[];
   description: string;
 }
 
-// Mapowanie nut (angielskich identyfikatorów) na polskie kategorie
 const NOTE_TO_CATEGORY: Record<string, string[]> = {
   floral: ["Kwiatowe"],
   rose: ["Kwiatowe"],
   jasmine: ["Kwiatowe"],
   "jasmine-sambac": ["Kwiatowe"],
-  jasmine_absolute: ["Kwiatowe"],
+  "jasmine-absolute": ["Kwiatowe"],
   tuberose: ["Kwiatowe"],
   "orange-blossom": ["Kwiatowe"],
   neroli: ["Kwiatowe"],
@@ -61,13 +69,12 @@ const NOTE_TO_CATEGORY: Record<string, string[]> = {
   iris: ["Kwiatowe"],
   "iris-root": ["Kwiatowe"],
   gardenia: ["Kwiatowe"],
-  "freesia": ["Kwiatowe"],
+  freesia: ["Kwiatowe"],
   heliotrope: ["Kwiatowe"],
   "lily-of-the-valley": ["Kwiatowe"],
   muguet: ["Kwiatowe"],
   orchid: ["Kwiatowe"],
   osmanthus: ["Kwiatowe"],
-  peony: ["Kwiatowe"],
   carnation: ["Kwiatowe", "Korzenne"],
   woody: ["Drzewne"],
   "cedarwood": ["Drzewne"],
@@ -149,7 +156,6 @@ const NOTE_TO_CATEGORY: Record<string, string[]> = {
   fern: ["Zielone", "Fougère"],
   fougere: ["Fougère"],
   coumarin: ["Fougère"],
-  amber: ["Ambrowe"],
   ambroxan: ["Ambrowe"],
   "white-amber": ["Ambrowe"],
   musky: ["Piżmowe"],
@@ -165,10 +171,10 @@ const NOTE_TO_CATEGORY: Record<string, string[]> = {
   fresh: ["Świeże"],
 };
 
-function mapNotesToCategories(notes: { id: string; name: string }[]): string[] {
+function mapNotesToCategories(notes: { name: string }[]): string[] {
   const categories = new Set<string>();
   for (const note of notes) {
-    const key = note.id.toLowerCase();
+    const key = note.name.toLowerCase().replace(/\s+/g, "-");
     const mapped = NOTE_TO_CATEGORY[key];
     if (mapped) {
       for (const cat of mapped) categories.add(cat);
@@ -177,9 +183,24 @@ function mapNotesToCategories(notes: { id: string; name: string }[]): string[] {
   return Array.from(categories);
 }
 
-// Cache w pamięci, żeby nie marnować darmowego limitu (1000 zapytań/mies.)
-const cache = new Map<string, { expiresAt: number; data: unknown }>();
-const CACHE_TTL_MS = 10 * 60 * 1000;
+function buildDescription(hit: RapidApiFragranceHit): string {
+  const name = hit.name || "";
+  const brand = hit.brand?.name || "";
+  const year = hit.releasedAt ? new Date(hit.releasedAt).getFullYear() : null;
+  const notes = hit.notes.map((n) => n.name);
+  const parts: string[] = [];
+  if (brand) {
+    parts.push(
+      year
+        ? `${name} to zapach marki ${brand}, wydany w ${year} roku.`
+        : `${name} to zapach marki ${brand}.`,
+    );
+  }
+  if (notes.length > 0) {
+    parts.push(`W nutach znajdziemy: ${notes.join(", ")}.`);
+  }
+  return parts.join(" ");
+}
 
 async function rapidApiFetch<T>(query: string, limit: number): Promise<T> {
   const key = process.env.RAPIDAPI_KEY;
@@ -210,12 +231,6 @@ async function rapidApiFetch<T>(query: string, limit: number): Promise<T> {
     ],
   });
 
-  const cacheKey = `q:${query}:l:${limit}`;
-  const cached = cache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.data as T;
-  }
-
   const res = await fetch(`${RAPIDAPI_BASE}/multi-search`, {
     method: "POST",
     headers: {
@@ -235,48 +250,24 @@ async function rapidApiFetch<T>(query: string, limit: number): Promise<T> {
     throw new Error(`Fragrance API error: ${res.status} ${res.statusText}`);
   }
 
-  const json = (await res.json()) as T;
-  cache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, data: json });
-  return json;
+  return res.json() as Promise<T>;
 }
 
-function buildDescription(hit: RapidApiFragranceHit): string {
-  const name = hit.name || "";
-  const brand = hit.brand?.name || "";
-  const year = hit.releasedAt
-    ? new Date(hit.releasedAt).getFullYear()
-    : null;
-  const notes = hit.notes.map((n) => n.name);
-  const parts: string[] = [];
-  if (brand) {
-    parts.push(
-      year
-        ? `${name} to zapach marki ${brand}, wydany w ${year} roku.`
-        : `${name} to zapach marki ${brand}.`,
-    );
+// Heuristic classification based on perfume pyramid rules
+function classifyNotePosition(note: { name: string; id: string }): "top" | "heart" | "base" {
+  const key = note.id.toLowerCase().replace(/\s+/g, "-");
+  const categories = NOTE_TO_CATEGORY[key] || [];
+  
+  // Top notes: Citrus, Green, Aromatic/Herbal, Fruity light, Aldehydic
+  if (categories.some(c => ["Cytrusowe", "Zielone", "Aromatyczne", "Świeże", "Owocowe"].includes(c))) {
+    return "top";
   }
-  if (notes.length > 0) {
-    parts.push(`W nutach znajdziemy: ${notes.join(", ")}.`);
+  // Heart notes: Floral, Spicy/Rooty, Nutty, Coffee
+  if (categories.some(c => ["Kwiatowe", "Korzenne", "Orientalne"].includes(c))) {
+    return "heart";
   }
-  return parts.join(" ");
-}
-
-function mapHit(hit: RapidApiFragranceHit): PerfumeSearchResult {
-  const year = hit.releasedAt
-    ? new Date(hit.releasedAt).getFullYear()
-    : null;
-
-  return {
-    id: String(hit.id),
-    name: hit.name,
-    brand: hit.brand?.name || "",
-    year,
-    rating: hit.reviewsScoreAvg,
-    image: hit.image?.url || null,
-    notes: hit.notes.map((n) => n.name),
-    categories: mapNotesToCategories(hit.notes),
-    description: buildDescription(hit),
-  };
+  // Base notes: Woody, Musky, Amber, Sweet/Gourmand, Leather, Mossy
+  return "base";
 }
 
 export async function searchPerfumes(
@@ -286,10 +277,65 @@ export async function searchPerfumes(
   const q = query.trim();
   if (q.length < 3) return [];
 
-  const data = await rapidApiFetch<MultiSearchResponse>(q, limit);
+  try {
+    const data = await rapidApiFetch<MultiSearchResponse>(q, limit);
 
-  const hits = data.results?.[0]?.hits || [];
-  return hits
-    .filter((h) => h.status === "published")
-    .map(mapHit);
+    const hits = data.results?.[0]?.hits || [];
+    const publishedHits = hits.filter((h) => h.status === "published");
+
+    return publishedHits.slice(0, limit).map((hit) => {
+      const year = hit.releasedAt
+        ? new Date(hit.releasedAt).getFullYear()
+        : null;
+
+      const allNotes = hit.notes.map((n) => n.name);
+      
+      // Classify each note into top/heart/base using heuristic
+      const notesByPosition = { top: [] as any[], heart: [] as any[], base: [] as any[] };
+      
+      hit.notes.forEach((n, idx) => {
+        const translated = translateNote(n.name);
+        const position = classifyNotePosition(n);
+        const intensity = Math.max(50, 100 - idx * 5); // Gentle decay
+        
+        notesByPosition[position].push({
+          name: translated.pl,
+          enName: n.name,
+          intensity,
+          imageUrl: translated.imageUrl,
+          category: translated.category,
+        });
+      });
+
+      // Flatten for backward compatibility, but maintain order: top -> heart -> base
+      const notesWithDetails = [
+        ...notesByPosition.top,
+        ...notesByPosition.heart,
+        ...notesByPosition.base,
+      ];
+
+      return {
+        id: String(hit.id),
+        name: hit.name,
+        brand: hit.brand?.name || "",
+        year,
+        rating: hit.reviewsScoreAvg,
+        image: hit.image?.url || null,
+        notes: allNotes,
+        notesWithDetails,
+        categories: mapNotesToCategories(hit.notes),
+        description: buildDescription(hit),
+      };
+    });
+  } catch (error) {
+    console.error("RapidAPI search error:", error);
+    return [];
+  }
+}
+
+// For backward compatibility - returns null (RapidAPI doesn't have separate detail endpoint)
+export async function getPerfumeDetails(
+  id: string,
+): Promise<PerfumeSearchResult | null> {
+  return null;
 }

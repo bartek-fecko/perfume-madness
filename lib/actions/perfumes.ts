@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
   Perfume,
+  PerfumeNotes,
+  FragranceNote,
   PerfumeCategory,
   SortOption,
   SortDirection,
@@ -27,8 +29,9 @@ export async function createPerfume(perfume: {
   price: number;
   rating: number;
   description?: string;
-  notes: string[];
+  notes: PerfumeNotes;
   categories: string[];
+  wear_seasons?: string[];
   image_url?: string;
 }): Promise<{ success: boolean; error?: string; perfume?: Perfume }> {
   try {
@@ -64,7 +67,17 @@ export async function createPerfume(perfume: {
     const { data, error } = await supabase
       .from("perfumes")
       .insert({
-        ...perfume,
+        name: perfume.name,
+        brand: perfume.brand,
+        price: perfume.price,
+        rating: perfume.rating,
+        description: perfume.description,
+        notes_top: perfume.notes.top,
+        notes_heart: perfume.notes.heart,
+        notes_base: perfume.notes.base,
+        categories: perfume.categories,
+        wear_seasons: perfume.wear_seasons || [],
+        image_url: perfume.image_url,
         user_id: user.id,
         is_favorite: false,
         position,
@@ -182,7 +195,7 @@ export async function getPerfumes(options: {
     return [];
   }
 
-  return data as Perfume[];
+  return (data as Record<string, unknown>[]).map(mapDbPerfumeToPerfume);
 }
 
 export async function getAllUsers(): Promise<
@@ -285,7 +298,7 @@ export async function getFollowingPerfumes(options: {
     return [];
   }
 
-  return data as Perfume[];
+  return (data as Record<string, unknown>[]).map(mapDbPerfumeToPerfume);
 }
 
 export async function getUserPerfumes(
@@ -323,7 +336,7 @@ export async function getUserPerfumes(
     return [];
   }
 
-  return data as Perfume[];
+  return (data as Record<string, unknown>[]).map(mapDbPerfumeToPerfume);
 }
 
 export async function getUserProfile(userId: string): Promise<{
@@ -361,6 +374,18 @@ export async function getUserProfile(userId: string): Promise<{
   };
 }
 
+function mapDbPerfumeToPerfume(data: Record<string, unknown>): Perfume {
+  return {
+    ...data,
+    wear_seasons: (data.wear_seasons as string[]) || [],
+    notes: {
+      top: (data.notes_top as FragranceNote[]) || [],
+      heart: (data.notes_heart as FragranceNote[]) || [],
+      base: (data.notes_base as FragranceNote[]) || [],
+    },
+  } as Perfume;
+}
+
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
   const supabase = await createClient();
 
@@ -375,7 +400,7 @@ export async function getPerfumeById(id: string): Promise<Perfume | null> {
     return null;
   }
 
-  return data as Perfume;
+  return mapDbPerfumeToPerfume(data as Record<string, unknown>);
 }
 
 export async function updatePerfume(
@@ -386,8 +411,9 @@ export async function updatePerfume(
     price: number;
     rating: number;
     description: string;
-    notes: string[];
+    notes: PerfumeNotes;
     categories: string[];
+    wear_seasons: string[];
     image_url: string;
     is_favorite: boolean;
   }>,
@@ -401,9 +427,27 @@ export async function updatePerfume(
     return { success: false, error: "Not authenticated" };
   }
 
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.brand !== undefined) updateData.brand = updates.brand;
+  if (updates.price !== undefined) updateData.price = updates.price;
+  if (updates.rating !== undefined) updateData.rating = updates.rating;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.categories !== undefined) updateData.categories = updates.categories;
+  if (updates.wear_seasons !== undefined) updateData.wear_seasons = updates.wear_seasons;
+  if (updates.image_url !== undefined) updateData.image_url = updates.image_url;
+  if (updates.is_favorite !== undefined) updateData.is_favorite = updates.is_favorite;
+
+  if (updates.notes !== undefined) {
+    updateData.notes_top = updates.notes.top;
+    updateData.notes_heart = updates.notes.heart;
+    updateData.notes_base = updates.notes.base;
+  }
+
   const { error } = await supabase
     .from("perfumes")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -593,7 +637,7 @@ export async function getCollectionStats(userId: string): Promise<{
 
   const { data, error } = await supabase
     .from("perfumes")
-    .select("brand, price, rating, notes, is_favorite")
+    .select("brand, price, rating, notes_top, notes_heart, notes_base, is_favorite")
     .eq("user_id", userId);
 
   if (error || !data) {
@@ -638,8 +682,13 @@ export async function getCollectionStats(userId: string): Promise<{
   const favorites = data.filter((p) => p.is_favorite);
   const noteCounts = new Map<string, number>();
   for (const p of favorites) {
-    for (const note of p.notes || []) {
-      const key = String(note).trim();
+    const allNotes = [
+      ...(p.notes_top as FragranceNote[]) || [],
+      ...(p.notes_heart as FragranceNote[]) || [],
+      ...(p.notes_base as FragranceNote[]) || [],
+    ];
+    for (const note of allNotes) {
+      const key = String(note.name).trim();
       if (!key) continue;
       noteCounts.set(key, (noteCounts.get(key) || 0) + 1);
     }
