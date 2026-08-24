@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCachedPerfume } from "@/lib/perfume-cache";
+import { getComments, getUserCommentCount } from "@/lib/actions/comments";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -304,12 +304,33 @@ export function PerfumeDetail({
   const [imageUrl, setImageUrl] = useState(perfume.image_url || "");
   const [isFavorite, setIsFavorite] = useState(perfume.is_favorite);
 
-  // Comments states
+  // Comments states - leniwie doczytywane, nie blokują prefetch detail
+  const [comments, setComments] = useState<PerfumeComment[]>(initialComments);
+  const [commentsLoading, setCommentsLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
   const [commentError, setCommentError] = useState<string | null>(null);
-  const [localCommentCount, setLocalCommentCount] = useState(
-    initialUserCommentCount,
-  );
+  const [localCommentCount, setLocalCommentCount] = useState(initialUserCommentCount);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setCommentsLoading(true);
+      try {
+        const [c, cnt] = await Promise.all([
+          getComments(perfume.id),
+          currentUserId ? getUserCommentCount(perfume.id) : Promise.resolve(0),
+        ]);
+        if (!cancelled) {
+          setComments(c);
+          setLocalCommentCount(cnt);
+        }
+      } finally {
+        if (!cancelled) setCommentsLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [perfume.id, currentUserId]);
 
   const remainingComments = Math.max(0, 5 - localCommentCount);
   const canComment = currentUserId && remainingComments > 0;
@@ -492,6 +513,8 @@ export function PerfumeDetail({
       if (result.success) {
         setNewComment("");
         setLocalCommentCount((prev) => prev + 1);
+        const updated = await getComments(perfume.id);
+        setComments(updated);
         router.refresh();
       } else {
         setCommentError(result.error || "Nie udało się dodać komentarza");
@@ -504,6 +527,8 @@ export function PerfumeDetail({
       const result = await deleteComment(commentId);
       if (result.success) {
         setLocalCommentCount((prev) => prev - 1);
+        const updated = await getComments(perfume.id);
+        setComments(updated);
         router.refresh();
       } else {
         setCommentError(result.error || "Nie udało się usunąć komentarza");
@@ -915,7 +940,7 @@ export function PerfumeDetail({
           <div className="flex items-center gap-2 mb-6">
             <MessageSquare className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">
-              Komentarze ({initialComments.length})
+              Komentarze ({commentsLoading ? "…" : comments.length})
             </h2>
           </div>
 
@@ -986,7 +1011,11 @@ export function PerfumeDetail({
 
           {/* Comments List */}
           <div className="space-y-4">
-            {initialComments.length === 0 ? (
+            {commentsLoading ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">Ładowanie komentarzy…</p>
+              </div>
+            ) : comments.length === 0 ? (
               <div className="text-center py-12">
                 <MessageSquare className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
@@ -994,7 +1023,7 @@ export function PerfumeDetail({
                 </p>
               </div>
             ) : (
-              initialComments.map((comment) => (
+              comments.map((comment) => (
                 <div
                   key={comment.id}
                   className="p-4 bg-card border border-border rounded-xl hover:bg-muted/20 transition-colors"
