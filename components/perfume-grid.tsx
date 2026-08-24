@@ -171,6 +171,16 @@ export function PerfumeGrid({
     setOpenBrandKey(key);
   };
 
+  // Prefetch detail pages for visible perfumes on hover/viewport
+  useEffect(() => {
+    // prefetch single-perfume brand tiles imediatamente (do 6 visible)
+    brandGroups.slice(0, 8).forEach((g) => {
+      if (g.perfumes.length === 1) {
+        router.prefetch(`/perfume/${g.perfumes[0].id}`);
+      }
+    });
+  }, [brandGroups, router]);
+
   const handleCloseBrand = () => {
     setOpenBrandKey(null);
   };
@@ -403,6 +413,7 @@ function SortableBrandTile({
   canReorder,
   onOpen,
 }: SortableBrandTileProps) {
+  const router = useRouter();
   const {
     attributes,
     listeners,
@@ -438,6 +449,11 @@ function SortableBrandTile({
           : "")
       }
       onClick={onOpen}
+      onMouseEnter={() => {
+        if (group.perfumes.length === 1) {
+          router.prefetch(`/perfume/${group.perfumes[0].id}`);
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();

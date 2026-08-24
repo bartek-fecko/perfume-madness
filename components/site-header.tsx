@@ -89,6 +89,10 @@ export function SiteHeader({
     const data = await getNotifications();
     setNotifications(data);
     setUnreadCount(data.filter((n) => !n.is_read).length);
+    // prefetch detail pages for notifications
+    data.forEach((n) => {
+      if (n.perfume_id) router.prefetch(`/perfume/${n.perfume_id}`);
+    });
   };
 
   const handleMarkAsRead = async (id: string) => {
