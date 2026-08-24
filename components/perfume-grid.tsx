@@ -171,14 +171,22 @@ export function PerfumeGrid({
     setOpenBrandKey(key);
   };
 
-  // Prefetch detail pages for visible perfumes on hover/viewport
+  // Prefetch detail pages - agresywnie dla wszystkich widocznych kafelków
   useEffect(() => {
-    // prefetch single-perfume brand tiles imediatamente (do 6 visible)
-    brandGroups.slice(0, 8).forEach((g) => {
-      if (g.perfumes.length === 1) {
-        router.prefetch(`/perfume/${g.perfumes[0].id}`);
+    // idle callback - nie blokuj głównego wątku, prefetch wszystkich brandów w tle
+    const doPrefetch = () => {
+      for (const g of brandGroups) {
+        if (g.perfumes.length === 1) {
+          router.prefetch(`/perfume/${g.perfumes[0].id}`);
+        } else {
+          // dla multi-perfume: prefetch każdego perfumu w grupie (max 4 na kafelku)
+          g.perfumes.slice(0, 4).forEach((p) => router.prefetch(`/perfume/${p.id}`));
+        }
       }
-    });
+    };
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    if (idle) idle(doPrefetch);
+    else setTimeout(doPrefetch, 500);
   }, [brandGroups, router]);
 
   const handleCloseBrand = () => {
