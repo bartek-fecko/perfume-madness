@@ -1,51 +1,59 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import type { PerfumeComment } from "@/lib/types";
 
-// Pobierz wszystkie komentarze dla perfum
-export async function getComments(
-  perfumeId: string,
-): Promise<PerfumeComment[]> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("perfume_comments")
-    .select("*")
-    .eq("perfume_id", perfumeId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching comments:", error);
-    return [];
-  }
-
-  if (!data || data.length === 0) return [];
-
-  // Pobierz dane użytkowników batchowo (1 query zamiast N)
-  const userIds = [...new Set(data.map((c) => c.user_id))];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, avatar_url")
-    .in("id", userIds);
-  const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
-
-  const commentsWithUsers = data.map((comment) => {
-    const profile = profileMap.get(comment.user_id) as
-      | { full_name?: string; email?: string; avatar_url?: string }
-      | undefined;
-    return {
-      ...comment,
-      user_name:
-        profile?.full_name || profile?.email?.split("@")[0] || "Użytkownik",
-      user_email: profile?.email,
-      user_avatar: profile?.avatar_url,
-    };
-  });
-
-  return commentsWithUsers as PerfumeComment[];
+// Pobierz wszystkie komentarze dla perfum - cache via Next Data Cache
+export async function getComments(perfumeId: string): Promise<PerfumeComment[]> {
+  return getCachedComments(perfumeId);
 }
+
+const getCachedComments = unstable_cache(
+  async (perfumeId: string): Promise<PerfumeComment[]> => {
+    const supabase = createAnonClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data, error } = await supabase
+      .from("perfume_comments")
+      .select("*")
+      .eq("perfume_id", perfumeId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) return [];
+
+    const userIds = [...new Set(data.map((c) => c.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url")
+      .in("id", userIds);
+    const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+    const commentsWithUsers = data.map((comment) => {
+      const profile = profileMap.get(comment.user_id) as
+        | { full_name?: string; email?: string; avatar_url?: string }
+        | undefined;
+      return {
+        ...comment,
+        user_name:
+          profile?.full_name || profile?.email?.split("@")[0] || "Użytkownik",
+        user_email: profile?.email,
+        user_avatar: profile?.avatar_url,
+      };
+    });
+
+    return commentsWithUsers as PerfumeComment[];
+  },
+  ["comments-by-perfume"],
+  { revalidate: 30, tags: ["comments"] },
+);
 
 // Sprawdź ile komentarzy użytkownik już dodał do tych perfum
 export async function getUserCommentCount(perfumeId: string): Promise<number> {
@@ -147,6 +155,7 @@ export async function addComment(
     }
 
     revalidatePath(`/perfume/${perfumeId}`);
+    revalidateTag("comments");
     return { success: true };
   } catch (error) {
     console.error("Unexpected error in addComment:", error);
@@ -191,6 +200,7 @@ export async function deleteComment(
 
     if (comment) {
       revalidatePath(`/perfume/${comment.perfume_id}`);
+      revalidateTag("comments");
     }
 
     return { success: true };
