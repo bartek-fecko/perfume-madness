@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getPerfumeById } from "@/lib/actions/perfumes";
-import { getCurrentUser } from "@/lib/actions/auth";
 import { PerfumeDetail } from "@/components/perfume-detail";
 
 interface PageProps {
@@ -15,27 +14,12 @@ export default async function PerfumeDetailPage({
   const { id } = await params;
   const { readonly } = await searchParams;
 
-  const [perfume, user] = await Promise.all([
-    getPerfumeById(id),
-    getCurrentUser(),
-  ]);
+  const perfume = await getPerfumeById(id);
 
   if (!perfume) {
     notFound();
   }
 
-  const isOwner = user?.id === perfume.user_id;
-  const isReadOnly = readonly === "true" || !isOwner;
-
-  // Komentarze doczytują się leniwie na kliencie - strona detail jest prefetchowana tylko z perfumem (Next Data Cache)
-  return (
-    <PerfumeDetail
-      perfume={perfume}
-      isReadOnly={isReadOnly}
-      initialComments={[]}
-      currentUserId={user?.id || null}
-      userCommentCount={0}
-      user={user}
-    />
-  );
+  // Tylko perfume jest cache'owany (Data Cache) i prefetchowany - user/komentarze leniwie na kliencie
+  return <PerfumeDetail perfume={perfume} initialReadonly={readonly === "true"} />;
 }

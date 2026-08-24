@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getComments, getUserCommentCount } from "@/lib/actions/comments";
+import { getCurrentUser } from "@/lib/actions/auth";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -66,11 +67,13 @@ const allCategories = [
 
 interface PerfumeDetailProps {
   perfume: Perfume;
-  isReadOnly: boolean;
-  initialComments: PerfumeComment[];
-  currentUserId: string | null;
-  userCommentCount: number;
-  user: User | null;
+  initialReadonly?: boolean;
+  // legacy props - nie używane, strona jest prefetchowana tylko z perfume
+  isReadOnly?: boolean;
+  initialComments?: PerfumeComment[];
+  currentUserId?: string | null;
+  userCommentCount?: number;
+  user?: User | null;
 }
 
 // Funkcja do normalizacji URL/BASE64
@@ -274,16 +277,33 @@ function NotesEditor({
 
 export function PerfumeDetail({
   perfume,
-  isReadOnly,
-  initialComments,
-  currentUserId,
-  userCommentCount: initialUserCommentCount,
-  user,
+  initialReadonly = false,
+  isReadOnly: legacyReadOnly,
+  initialComments = [],
+  currentUserId: legacyUserId,
+  userCommentCount: legacyCount = 0,
+  user: legacyUser = null,
 }: PerfumeDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(legacyUser);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(legacyUserId ?? null);
+  const [isReadOnly, setIsReadOnly] = useState<boolean>(legacyReadOnly ?? initialReadonly);
+
+  useEffect(() => {
+    if (legacyUser) return;
+    let cancelled = false;
+    getCurrentUser().then((u) => {
+      if (cancelled) return;
+      setUser(u as User | null);
+      setCurrentUserId((u as unknown as User | null)?.id ?? null);
+      const isOwner = (u as unknown as User | null)?.id === perfume.user_id;
+      setIsReadOnly(initialReadonly || !isOwner);
+    });
+    return () => { cancelled = true; };
+  }, [perfume.user_id, initialReadonly, legacyUser]);
 
   // Perfume edit states
   const [name, setName] = useState(perfume.name);
