@@ -541,7 +541,20 @@ export function PerfumeDetail({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => {
+              // jeśli historia ma wpis (przyszedł z siatki), wróć; inaczej idź na główną bez bounce przez dashboard
+              if (typeof window !== "undefined" && window.history.length > 2) {
+                router.back();
+                // fallback: jeśli back nie zadziała w 300ms (np. brak historii), push na /
+                setTimeout(() => {
+                  if (window.location.pathname.startsWith("/perfume/")) {
+                    router.push("/");
+                  }
+                }, 300);
+              } else {
+                router.push("/");
+              }
+            }}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors self-start"
           >
             <ArrowLeft className="w-5 h-5 shrink-0" />

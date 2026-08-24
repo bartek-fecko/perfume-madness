@@ -389,6 +389,7 @@ function mapDbPerfumeToPerfume(data: Record<string, unknown>): Perfume {
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
   const supabase = await createClient();
 
+  const start = Date.now();
   const { data, error } = await supabase
     .from("perfumes")
     .select("*")
@@ -396,8 +397,11 @@ export async function getPerfumeById(id: string): Promise<Perfume | null> {
     .single();
 
   if (error) {
-    console.error("Error fetching perfume:", error);
+    console.error(`Error fetching perfume ${id} (${Date.now() - start}ms):`, error);
     return null;
+  }
+  if (Date.now() - start > 500) {
+    console.warn(`Slow perfume fetch ${id}: ${Date.now() - start}ms`);
   }
 
   return mapDbPerfumeToPerfume(data as Record<string, unknown>);
