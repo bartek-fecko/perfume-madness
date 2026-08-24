@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
@@ -145,6 +145,7 @@ export async function createPerfume(perfume: {
     }
 
     revalidateTag("perfumes");
+    revalidateTag("perfume");
     return { success: true, perfume: data as Perfume };
   } catch (err) {
     console.error("💥 Unexpected error in createPerfume:", err);
@@ -387,21 +388,22 @@ function mapDbPerfumeToPerfume(data: Record<string, unknown>): Perfume {
 }
 
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("perfumes")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("Error fetching perfume:", error);
-    return null;
-  }
-
-  return mapDbPerfumeToPerfume(data as Record<string, unknown>);
+  return getCachedPerfumeById(id);
 }
+
+const getCachedPerfumeById = unstable_cache(
+  async (id: string): Promise<Perfume | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("perfumes").select("*").eq("id", id).single();
+    if (error) {
+      console.error("Error fetching perfume:", error);
+      return null;
+    }
+    return mapDbPerfumeToPerfume(data as Record<string, unknown>);
+  },
+  ["perfume-by-id"],
+  { revalidate: 60, tags: ["perfume"] },
+);
 
 export async function updatePerfume(
   id: string,
@@ -457,6 +459,7 @@ export async function updatePerfume(
   }
 
   revalidateTag("perfumes");
+  revalidateTag("perfume");
   return { success: true };
 }
 
@@ -527,6 +530,7 @@ export async function deletePerfume(
   }
 
   revalidateTag("perfumes");
+  revalidateTag("perfume");
   return { success: true };
 }
 
@@ -570,6 +574,7 @@ export async function toggleFavorite(
   }
 
   revalidateTag("perfumes");
+  revalidateTag("perfume");
   return { success: true, isFavorite: newFavoriteState };
 }
 
