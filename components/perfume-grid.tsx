@@ -44,6 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type { Perfume } from "@/lib/types";
 import Image from "next/image";
@@ -451,11 +452,18 @@ function SortableBrandTile({
       <div
         className="relative aspect-square bg-white dark:bg-card overflow-hidden"
         onMouseEnter={() => {
-          if (group.perfumes.length === 1) {
-            router.prefetch(`/perfume/${group.perfumes[0].id}`);
-          }
+          if (group.perfumes.length === 1) router.prefetch(`/perfume/${group.perfumes[0].id}`);
         }}
       >
+        {group.perfumes.length === 1 && (
+          <Link
+            href={`/perfume/${group.perfumes[0].id}`}
+            prefetch
+            aria-hidden
+            tabIndex={-1}
+            className="hidden"
+          />
+        )}
         {group.perfumes.length === 1 ? (
           <TileImage
             src={group.perfumes[0].image_url || "/placeholder.svg"}
