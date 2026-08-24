@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -114,6 +115,13 @@ export function SiteHeader({
     // Domyślna akcja dla całej notyfikacji (używana gdy klikasz w background)
     if (notification.type === "follow" && notification.from_user_id) {
       router.push(`/?view=explore&user=${notification.from_user_id}`);
+    } else if (
+      notification.type === "new_comment" &&
+      notification.perfume_id
+    ) {
+      router.push(`/perfume/${notification.perfume_id}#comments`);
+    } else if (notification.perfume_id) {
+      router.push(`/perfume/${notification.perfume_id}`);
     }
   };
 
@@ -127,6 +135,12 @@ export function SiteHeader({
     e.stopPropagation(); // Zatrzymaj propagację do parent button
     setIsNotificationsOpen(false);
     router.push(`/perfume/${perfumeId}`);
+  };
+
+  const handleCommentClick = (e: React.MouseEvent, perfumeId: string) => {
+    e.stopPropagation();
+    setIsNotificationsOpen(false);
+    router.push(`/perfume/${perfumeId}#comments`);
   };
 
   const handleGoogleSignIn = async () => {
@@ -246,7 +260,7 @@ export function SiteHeader({
             skomentował Twoje perfumy:{" "}
             {notification.perfume_id ? (
               <button
-                onClick={(e) => handlePerfumeClick(e, notification.perfume_id!)}
+                onClick={(e) => handleCommentClick(e, notification.perfume_id!)}
                 className="font-medium text-foreground hover:text-primary transition-colors underline decoration-dotted"
               >
                 {notification.perfume_name || "Twoje perfumy"}
@@ -261,7 +275,7 @@ export function SiteHeader({
           {/* Klikalna sekcja - zobacz komentarz */}
           {notification.perfume_id && (
             <button
-              onClick={(e) => handlePerfumeClick(e, notification.perfume_id!)}
+              onClick={(e) => handleCommentClick(e, notification.perfume_id!)}
               className="flex items-center gap-1.5 text-xs text-primary pl-9 pt-0.5 hover:underline w-fit"
             >
               <MessageSquare className="w-3.5 h-3.5" />
@@ -386,7 +400,10 @@ export function SiteHeader({
   return (
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_-4px_rgba(0,0,0,0.06)]">
       <div className={`h-16 px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full ${innerClass} mx-auto`}>
-        <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 min-w-0 shrink-0 hover:opacity-80 transition-opacity"
+        >
           <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white dark:bg-card shrink-0 shadow-sm">
             <Image
               src="/logo.jpg"
@@ -398,7 +415,7 @@ export function SiteHeader({
           <h1 className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
             PerfumeMadness
           </h1>
-        </div>
+        </Link>
 
         <div className="flex-1 min-w-0 flex justify-center">
           {!hideSearch && user && (
@@ -484,7 +501,16 @@ export function SiteHeader({
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`w-full text-left p-4 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-all duration-200 ${
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => handleNotificationClick(notification)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleNotificationClick(notification);
+                            }
+                          }}
+                          className={`w-full text-left p-4 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-all duration-200 cursor-pointer ${
                             !notification.is_read
                               ? "bg-primary/5 border-l-2 border-l-primary"
                               : ""

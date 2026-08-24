@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, Trash2, Send } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -43,6 +43,16 @@ export function CommentsSection({
 
   const remainingComments = Math.max(0, 5 - localCommentCount);
   const canComment = !isReadOnly && currentUserId && remainingComments > 0;
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#comments") {
+      setTimeout(() => {
+        document
+          .getElementById("comments")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, []);
 
   const handleAddComment = () => {
     if (!newComment.trim() || newComment.length > 500) {
@@ -91,7 +101,7 @@ export function CommentsSection({
   };
 
   return (
-    <div className="mt-12 border-t border-border pt-8">
+    <div id="comments" className="mt-12 border-t border-border pt-8 scroll-mt-20">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <MessageSquare className="w-5 h-5 text-primary" />

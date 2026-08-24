@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -312,6 +312,18 @@ export function PerfumeDetail({
 
   const remainingComments = Math.max(0, 5 - localCommentCount);
   const canComment = currentUserId && remainingComments > 0;
+
+  // Scroll to comments if hash is #comments
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#comments") {
+      // small delay to ensure DOM is rendered
+      setTimeout(() => {
+        document
+          .getElementById("comments")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, []);
 
   const handleSave = () => {
     setError(null);
@@ -881,7 +893,10 @@ export function PerfumeDetail({
           )}
         </div>
 
-        <div className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8">
+        <div
+          id="comments"
+          className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8 scroll-mt-20"
+        >
           {/* Header */}
           <div className="flex items-center gap-2 mb-6">
             <MessageSquare className="w-5 h-5 text-primary" />
