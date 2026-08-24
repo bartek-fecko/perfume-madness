@@ -187,13 +187,10 @@ export function PerfumeGrid({
     else setTimeout(doPrefetch, 300);
   }, [brandGroups, router]);
 
-  // Prefetch dopiero po otwarciu modala dla zgrupowanych (>1)
+  // Prefetch dopiero po otwarciu modala dla zgrupowanych (>1) - bez delay, natychmiast
   useEffect(() => {
     if (displayGroup && displayGroup.perfumes.length > 1) {
-      const t = setTimeout(() => {
-        displayGroup.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
-      }, 50);
-      return () => clearTimeout(t);
+      displayGroup.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
     }
   }, [displayGroup, router]);
 
@@ -476,6 +473,8 @@ function SortableBrandTile({
       onMouseEnter={() => {
         if (group.perfumes.length === 1) {
           router.prefetch(`/perfume/${group.perfumes[0].id}`);
+        } else {
+          group.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
         }
       }}
       onKeyDown={(e) => {
