@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -120,11 +120,6 @@ export const PerfumeCard = memo(function PerfumeCard({
   const imageSrc = isValidImageUrl(image_url) ? image_url! : "/placeholder.svg";
   const isDataUrl = image_url?.startsWith("data:") ?? false;
   const dateAdded = formatDateAdded(created_at);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const imageRevealClass = cn(
-    "transition-opacity duration-300",
-    imageLoaded ? "opacity-100" : "opacity-0",
-  );
 
   return (
     <Card
@@ -138,23 +133,19 @@ export const PerfumeCard = memo(function PerfumeCard({
             <img
               src={image_url!}
               alt={`${name} by ${brand}`}
-              className={`absolute inset-0 w-full h-full object-contain ${imageRevealClass}`}
+              className="absolute inset-0 w-full h-full object-contain"
               loading="lazy"
               decoding="async"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
             />
           ) : (
             <Image
               src={imageSrc}
               alt={`${name} by ${brand}`}
               fill
-              className={`object-contain ${imageRevealClass}`}
-              loading="eager"
+              className="object-contain"
+              loading="lazy"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-              quality={50}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
+              quality={60}
             />
           )}
 
