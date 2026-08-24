@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { setCachedPerfume } from "@/lib/perfume-cache";
 import type { Perfume } from "@/lib/types";
 
 interface PerfumeCardProps {
@@ -126,10 +125,7 @@ export const PerfumeCard = memo(function PerfumeCard({
       <CardContent className="p-0">
         <div
           className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg"
-          onMouseEnter={() => {
-            setCachedPerfume(perfume);
-            router.prefetch(`/perfume/${id}`);
-          }}
+          onMouseEnter={() => router.prefetch(`/perfume/${id}`)}
         >
           {isDataUrl ? (
             <img

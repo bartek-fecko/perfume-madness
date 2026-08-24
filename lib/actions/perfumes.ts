@@ -2,6 +2,7 @@
 
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
   Perfume,
@@ -393,7 +394,11 @@ export async function getPerfumeById(id: string): Promise<Perfume | null> {
 
 const getCachedPerfumeById = unstable_cache(
   async (id: string): Promise<Perfume | null> => {
-    const supabase = await createClient();
+    // Użyj anon klienta bez cookies() aby Next Data Cache mógł cache'ować (built-in cache)
+    const supabase = createAnonClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
     const { data, error } = await supabase.from("perfumes").select("*").eq("id", id).single();
     if (error) {
       console.error("Error fetching perfume:", error);

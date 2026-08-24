@@ -46,7 +46,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
-import { setCachedPerfume } from "@/lib/perfume-cache";
 import type { Perfume } from "@/lib/types";
 import Image from "next/image";
 
@@ -167,7 +166,6 @@ export function PerfumeGrid({
   const handleOpenBrand = (key: string) => {
     const group = brandGroups.find((g) => g.key === key);
     if (group && group.perfumes.length === 1) {
-      setCachedPerfume(group.perfumes[0]);
       router.push(`/perfume/${group.perfumes[0].id}`);
       return;
     }
@@ -454,10 +452,7 @@ function SortableBrandTile({
       <div
         className="relative aspect-square bg-white dark:bg-card overflow-hidden"
         onMouseEnter={() => {
-          if (group.perfumes.length === 1) {
-            setCachedPerfume(group.perfumes[0]);
-            router.prefetch(`/perfume/${group.perfumes[0].id}`);
-          }
+          if (group.perfumes.length === 1) router.prefetch(`/perfume/${group.perfumes[0].id}`);
         }}
       >
         {group.perfumes.length === 1 && (
