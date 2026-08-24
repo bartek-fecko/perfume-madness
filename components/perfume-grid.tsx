@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useEffect, useCallback, useMemo } from "react";
+import { useState, useTransition, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -45,7 +45,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
-import { setCachedPerfume } from "@/lib/perfume-cache";
 import type { Perfume } from "@/lib/types";
 import Image from "next/image";
 
@@ -166,19 +165,11 @@ export function PerfumeGrid({
   const handleOpenBrand = (key: string) => {
     const group = brandGroups.find((g) => g.key === key);
     if (group && group.perfumes.length === 1) {
-      setCachedPerfume(group.perfumes[0]);
       router.push(`/perfume/${group.perfumes[0].id}`);
       return;
     }
     setOpenBrandKey(key);
   };
-
-  // Prefetch dopiero po otwarciu modala dla zgrupowanych (>1) - bez delay, natychmiast
-  useEffect(() => {
-    if (displayGroup && displayGroup.perfumes.length > 1) {
-      displayGroup.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
-    }
-  }, [displayGroup, router]);
 
   const handleCloseBrand = () => {
     setOpenBrandKey(null);
@@ -412,38 +403,6 @@ function SortableBrandTile({
   canReorder,
   onOpen,
 }: SortableBrandTileProps) {
-  const router = useRouter();
-  const tileRef = React.useRef<HTMLDivElement | null>(null);
-  // Prefetch gdy kafelek wejdzie do viewportu - priorytet dla widocznych (Amouage vs Ombre spójnie)
-  useEffect(() => {
-    const el = tileRef.current;
-    if (!el) return;
-    if (group.perfumes.length !== 1) return;
-    const id = group.perfumes[0]?.id;
-    if (!id) return;
-    let done = false;
-    const doPrefetch = () => {
-      if (done) return;
-      done = true;
-      router.prefetch(`/perfume/${id}`);
-    };
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          doPrefetch();
-          obs.disconnect();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-    obs.observe(el);
-    // fallback - jeśli IntersectionObserver nie zadziała, prefetch po 2s
-    const t = setTimeout(doPrefetch, 2000);
-    return () => {
-      obs.disconnect();
-      clearTimeout(t);
-    };
-  }, [group.key, group.perfumes, router]);
   const {
     attributes,
     listeners,
@@ -466,17 +425,9 @@ function SortableBrandTile({
         ratedPerfumes.length
       : null;
 
-  const setCombinedRef = React.useCallback(
-    (el: HTMLDivElement | null) => {
-      setNodeRef(el);
-      (tileRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-    },
-    [setNodeRef],
-  );
-
   return (
     <div
-      ref={setCombinedRef}
+      ref={setNodeRef}
       style={style}
       className={
         "group text-left rounded-lg border border-border/70 bg-secondary/40 overflow-hidden cursor-pointer" +
@@ -487,13 +438,6 @@ function SortableBrandTile({
           : "")
       }
       onClick={onOpen}
-      onMouseEnter={() => {
-        if (group.perfumes.length === 1) {
-          router.prefetch(`/perfume/${group.perfumes[0].id}`);
-        } else {
-          group.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
-        }
-      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ export function FavoritesSection({
   favorites,
   readOnly = false,
 }: FavoritesSectionProps) {
-  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (favorites.length === 0) return null;
@@ -40,10 +38,8 @@ export function FavoritesSection({
   const renderCard = (perfume: Perfume) => (
     <Link
       href={`/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`}
-      prefetch
       key={perfume.id}
       onClick={() => setIsModalOpen(false)}
-      onMouseEnter={() => router.prefetch(`/perfume/${perfume.id}`)}
       className={cn(
         "group flex items-center gap-2 rounded-lg bg-secondary/40 border border-border/70 p-1.5",
         "hover:border-primary/30 transition-all duration-200 cursor-pointer"

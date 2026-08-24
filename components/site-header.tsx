@@ -89,10 +89,6 @@ export function SiteHeader({
     const data = await getNotifications();
     setNotifications(data);
     setUnreadCount(data.filter((n) => !n.is_read).length);
-    // prefetch detail pages for notifications
-    data.forEach((n) => {
-      if (n.perfume_id) router.prefetch(`/perfume/${n.perfume_id}`);
-    });
   };
 
   const handleMarkAsRead = async (id: string) => {
@@ -406,8 +402,6 @@ export function SiteHeader({
       <div className={`h-16 px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full ${innerClass} mx-auto`}>
         <Link
           href="/"
-          prefetch
-          scroll
           className="flex items-center gap-2.5 min-w-0 shrink-0 hover:opacity-80 transition-opacity"
         >
           <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white dark:bg-card shrink-0 shadow-sm">
