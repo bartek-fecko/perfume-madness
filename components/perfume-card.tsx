@@ -128,7 +128,6 @@ export const PerfumeCard = memo(function PerfumeCard({
           onMouseEnter={() => {
             console.log("[prefetch] card aspect hover", id);
             router.prefetch(`/perfume/${id}`);
-            fetch(`/perfume/${id}`).catch(() => {});
           }}
         >
           {isDataUrl ? (
