@@ -403,6 +403,7 @@ function SortableBrandTile({
   canReorder,
   onOpen,
 }: SortableBrandTileProps) {
+  const router = useRouter();
   const {
     attributes,
     listeners,
@@ -412,6 +413,14 @@ function SortableBrandTile({
     transition,
     isDragging,
   } = useSortable({ id: group.key });
+
+  // Prefetch tylko gdy kafelek prowadzi bezpośrednio do detalu (1 perfuma).
+  // Grupy linków (marka z wieloma perfumami otwiera modal) nie prefetchujemy.
+  const prefetchIfSingle = () => {
+    if (group.perfumes.length === 1) {
+      router.prefetch(`/perfume/${group.perfumes[0].id}`);
+    }
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -438,6 +447,8 @@ function SortableBrandTile({
           : "")
       }
       onClick={onOpen}
+      onMouseEnter={prefetchIfSingle}
+      onFocus={prefetchIfSingle}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +28,7 @@ export function FavoritesSection({
   readOnly = false,
 }: FavoritesSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   if (favorites.length === 0) return null;
 
@@ -35,16 +37,20 @@ export function FavoritesSection({
   );
   const visible = sorted.slice(0, VISIBLE_COUNT);
 
-  const renderCard = (perfume: Perfume) => (
-    <Link
-      href={`/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`}
-      key={perfume.id}
-      onClick={() => setIsModalOpen(false)}
-      className={cn(
-        "group flex items-center gap-2 rounded-lg bg-secondary/40 border border-border/70 p-1.5",
-        "hover:border-primary/30 transition-all duration-200 cursor-pointer"
-      )}
-    >
+  const renderCard = (perfume: Perfume) => {
+    const href = `/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`;
+    return (
+      <Link
+        href={href}
+        key={perfume.id}
+        onClick={() => setIsModalOpen(false)}
+        onMouseEnter={() => router.prefetch(href)}
+        onFocus={() => router.prefetch(href)}
+        className={cn(
+          "group flex items-center gap-2 rounded-lg bg-secondary/40 border border-border/70 p-1.5",
+          "hover:border-primary/30 transition-all duration-200 cursor-pointer"
+        )}
+      >
       <div className="relative w-10 h-10 shrink-0 rounded-md overflow-hidden bg-white dark:bg-card">
         <Image
           src={perfume.image_url || "/placeholder.svg"}
@@ -72,8 +78,9 @@ export function FavoritesSection({
           </div>
         )}
       </div>
-    </Link>
-  );
+      </Link>
+    );
+  };
 
   return (
     <>
