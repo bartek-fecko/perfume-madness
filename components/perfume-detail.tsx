@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getCachedPerfume } from "@/lib/perfume-cache";
 import Image from "next/image";
 import {
   ArrowLeft,

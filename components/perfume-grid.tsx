@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
+import { setCachedPerfume } from "@/lib/perfume-cache";
 import type { Perfume } from "@/lib/types";
 import Image from "next/image";
 
@@ -165,6 +166,7 @@ export function PerfumeGrid({
   const handleOpenBrand = (key: string) => {
     const group = brandGroups.find((g) => g.key === key);
     if (group && group.perfumes.length === 1) {
+      setCachedPerfume(group.perfumes[0]);
       router.push(`/perfume/${group.perfumes[0].id}`);
       return;
     }
@@ -431,6 +433,8 @@ function SortableBrandTile({
   // Prefetch pojedynczych kafelków spójnie - każdy single tile prefetchnie przy mount
   useEffect(() => {
     if (group.perfumes.length === 1 && group.perfumes[0]?.id) {
+      // debug - sprawdź w konsoli czy Amuage się prefetchnie
+      // console.log("[prefetch] single", group.label, group.perfumes[0].id);
       router.prefetch(`/perfume/${group.perfumes[0].id}`);
     }
   }, [group.key, router]);

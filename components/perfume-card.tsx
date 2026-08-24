@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { setCachedPerfume } from "@/lib/perfume-cache";
 import type { Perfume } from "@/lib/types";
 
 interface PerfumeCardProps {
@@ -129,6 +130,7 @@ export const PerfumeCard = memo(function PerfumeCard({
     <Card
       className="group relative overflow-hidden border-border/70 bg-card rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.06)]"
       onMouseEnter={() => router.prefetch(`/perfume/${id}`)}
+      onClick={() => setCachedPerfume(perfume)}
     >
       <CardContent className="p-0">
         <div className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg">
