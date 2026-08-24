@@ -23,24 +23,26 @@ export async function getComments(
 
   if (!data || data.length === 0) return [];
 
-  // Pobierz dane użytkowników
-  const commentsWithUsers = await Promise.all(
-    data.map(async (comment) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email, avatar_url")
-        .eq("id", comment.user_id)
-        .single();
+  // Pobierz dane użytkowników batchowo (1 query zamiast N)
+  const userIds = [...new Set(data.map((c) => c.user_id))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, avatar_url")
+    .in("id", userIds);
+  const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
-      return {
-        ...comment,
-        user_name:
-          profile?.full_name || profile?.email?.split("@")[0] || "Użytkownik",
-        user_email: profile?.email,
-        user_avatar: profile?.avatar_url,
-      };
-    }),
-  );
+  const commentsWithUsers = data.map((comment) => {
+    const profile = profileMap.get(comment.user_id) as
+      | { full_name?: string; email?: string; avatar_url?: string }
+      | undefined;
+    return {
+      ...comment,
+      user_name:
+        profile?.full_name || profile?.email?.split("@")[0] || "Użytkownik",
+      user_email: profile?.email,
+      user_avatar: profile?.avatar_url,
+    };
+  });
 
   return commentsWithUsers as PerfumeComment[];
 }
