@@ -416,9 +416,10 @@ function SortableBrandTile({
 
   // Prefetch tylko gdy kafelek prowadzi bezpośrednio do detalu (1 perfuma).
   // Grupy linków (marka z wieloma perfumami otwiera modal) nie prefetchujemy.
+  // kind:"full" = cała strona prefetchowana (potrzebne bo route jest dynamiczny przez auth)
   const prefetchIfSingle = () => {
     if (group.perfumes.length === 1) {
-      router.prefetch(`/perfume/${group.perfumes[0].id}`);
+      router.prefetch(`/perfume/${group.perfumes[0].id}`, { kind: "full" } as unknown as Parameters<typeof router.prefetch>[1]);
     }
   };
 

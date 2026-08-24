@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
   Perfume,
@@ -387,21 +388,34 @@ function mapDbPerfumeToPerfume(data: Record<string, unknown>): Perfume {
 }
 
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("perfumes")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("Error fetching perfume:", error);
-    return null;
-  }
-
-  return mapDbPerfumeToPerfume(data as Record<string, unknown>);
+  return getCachedPerfumeById(id);
 }
+
+// Cache przez Next Data Cache (anon klient, bez cookies() - inaczej cache nie działa).
+// Dzięki temu detail page jest prefetchowalny w całości, a revisity są natychmiastowe.
+const getCachedPerfumeById = unstable_cache(
+  async (id: string): Promise<Perfume | null> => {
+    const supabase = createAnonClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
+    const { data, error } = await supabase
+      .from("perfumes")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching perfume:", error);
+      return null;
+    }
+
+    return mapDbPerfumeToPerfume(data as Record<string, unknown>);
+  },
+  ["perfume-by-id"],
+  { revalidate: 300, tags: ["perfumes"] },
+);
 
 export async function updatePerfume(
   id: string,

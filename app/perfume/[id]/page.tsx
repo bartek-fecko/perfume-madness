@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { getPerfumeById } from "@/lib/actions/perfumes";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { PerfumeDetail } from "@/components/perfume-detail";
-import { getComments, getUserCommentCount } from "@/lib/actions/comments";
+import { CommentsLoader } from "@/components/comments-loader";
+import { MessageSquare } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,20 +29,36 @@ export default async function PerfumeDetailPage({
 
   const isOwner = user?.id === perfume.user_id;
   const isReadOnly = readonly === "true" || !isOwner;
-  // Pobierz komentarze równolegle - 200-400ms szybciej
-  const [comments, userCommentCount] = await Promise.all([
-    getComments(id),
-    user ? getUserCommentCount(id) : Promise.resolve(0),
-  ]);
 
   return (
     <PerfumeDetail
       perfume={perfume}
       isReadOnly={isReadOnly}
-      initialComments={comments}
       currentUserId={user?.id || null}
-      userCommentCount={userCommentCount}
+      userCommentCount={0}
       user={user}
-    />
+      initialComments={[]}
+    >
+      <Suspense
+        fallback={
+          <div className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8">
+            <div className="flex items-center gap-2 mb-6">
+              <MessageSquare className="w-5 h-5 text-primary animate-pulse" />
+              <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+            </div>
+            <div className="space-y-3">
+              <div className="h-20 bg-muted/50 rounded-xl animate-pulse" />
+              <div className="h-20 bg-muted/30 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        }
+      >
+        <CommentsLoader
+          perfumeId={id}
+          currentUserId={user?.id || null}
+          isReadOnly={isReadOnly}
+        />
+      </Suspense>
+    </PerfumeDetail>
   );
 }

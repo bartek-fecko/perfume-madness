@@ -39,13 +39,17 @@ export function FavoritesSection({
 
   const renderCard = (perfume: Perfume) => {
     const href = `/perfume/${perfume.id}${readOnly ? "?readonly=true" : ""}`;
+    const fullPrefetch = () =>
+      router.prefetch(href, {
+        kind: "full",
+      } as unknown as Parameters<typeof router.prefetch>[1]);
     return (
       <Link
         href={href}
         key={perfume.id}
         onClick={() => setIsModalOpen(false)}
-        onMouseEnter={() => router.prefetch(href)}
-        onFocus={() => router.prefetch(href)}
+        onMouseEnter={fullPrefetch}
+        onFocus={fullPrefetch}
         className={cn(
           "group flex items-center gap-2 rounded-lg bg-secondary/40 border border-border/70 p-1.5",
           "hover:border-primary/30 transition-all duration-200 cursor-pointer"
