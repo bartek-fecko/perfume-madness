@@ -121,12 +121,12 @@ export const PerfumeCard = memo(function PerfumeCard({
   const dateAdded = formatDateAdded(created_at);
 
   return (
-    <Card
-      className="group relative overflow-hidden border-border/70 bg-card rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.06)]"
-      onMouseEnter={() => router.prefetch(`/perfume/${id}`)}
-    >
+    <Card className="group relative overflow-hidden border-border/70 bg-card rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.06)]">
       <CardContent className="p-0">
-        <div className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg">
+        <div
+          className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg"
+          onMouseEnter={() => router.prefetch(`/perfume/${id}`)}
+        >
           {isDataUrl ? (
             <img
               src={image_url!}

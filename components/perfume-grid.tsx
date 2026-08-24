@@ -437,11 +437,6 @@ function SortableBrandTile({
           ? " shadow-lg ring-2 ring-primary/40 will-change-transform transition-none"
           : "")
       }
-      onMouseEnter={() => {
-        if (group.perfumes.length === 1) {
-          router.prefetch(`/perfume/${group.perfumes[0].id}`);
-        }
-      }}
       onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -453,7 +448,14 @@ function SortableBrandTile({
       tabIndex={0}
       aria-label={`Otwórz markę ${group.label}`}
     >
-      <div className="relative aspect-square bg-white dark:bg-card overflow-hidden">
+      <div
+        className="relative aspect-square bg-white dark:bg-card overflow-hidden"
+        onMouseEnter={() => {
+          if (group.perfumes.length === 1) {
+            router.prefetch(`/perfume/${group.perfumes[0].id}`);
+          }
+        }}
+      >
         {group.perfumes.length === 1 ? (
           <TileImage
             src={group.perfumes[0].image_url || "/placeholder.svg"}
