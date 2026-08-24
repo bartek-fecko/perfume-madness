@@ -219,6 +219,18 @@ export const PerfumeCard = memo(function PerfumeCard({
           <Link
             href={`/perfume/${id}${!isOwner ? "?readonly=true" : ""}`}
             prefetch={false}
+            onMouseEnter={() =>
+              router.prefetch(
+                `/perfume/${id}${!isOwner ? "?readonly=true" : ""}`,
+                { kind: "full" } as unknown as Parameters<typeof router.prefetch>[1],
+              )
+            }
+            onFocus={() =>
+              router.prefetch(
+                `/perfume/${id}${!isOwner ? "?readonly=true" : ""}`,
+                { kind: "full" } as unknown as Parameters<typeof router.prefetch>[1],
+              )
+            }
             className="block w-fit"
           >
             <h3 className="font-medium text-[13px] text-foreground/80 leading-tight truncate hover:text-primary hover:underline underline-offset-2 transition-colors">
