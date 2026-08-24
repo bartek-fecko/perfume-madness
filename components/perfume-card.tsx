@@ -123,13 +123,7 @@ export const PerfumeCard = memo(function PerfumeCard({
   return (
     <Card className="group relative overflow-hidden border-border/70 bg-card rounded-lg shadow-[0_1px_3px_oklch(0_0_0/0.06)]">
       <CardContent className="p-0">
-        <div
-          className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg"
-          onMouseEnter={() => {
-            console.log("[prefetch] card aspect hover", id);
-            router.prefetch(`/perfume/${id}`);
-          }}
-        >
+        <div className="relative aspect-square bg-secondary/40 overflow-hidden rounded-t-lg">
           {isDataUrl ? (
             <img
               src={image_url!}
@@ -224,7 +218,6 @@ export const PerfumeCard = memo(function PerfumeCard({
           </p>
           <Link
             href={`/perfume/${id}${!isOwner ? "?readonly=true" : ""}`}
-            prefetch
             className="block w-fit"
           >
             <h3 className="font-medium text-[13px] text-foreground/80 leading-tight truncate hover:text-primary hover:underline underline-offset-2 transition-colors">

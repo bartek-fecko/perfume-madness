@@ -2,8 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getComments, getUserCommentCount } from "@/lib/actions/comments";
-import { getCurrentUser } from "@/lib/actions/auth";
+import { getCachedPerfume } from "@/lib/perfume-cache";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -67,13 +66,11 @@ const allCategories = [
 
 interface PerfumeDetailProps {
   perfume: Perfume;
-  initialReadonly?: boolean;
-  // legacy props - nie używane, strona jest prefetchowana tylko z perfume
-  isReadOnly?: boolean;
-  initialComments?: PerfumeComment[];
-  currentUserId?: string | null;
-  userCommentCount?: number;
-  user?: User | null;
+  isReadOnly: boolean;
+  initialComments: PerfumeComment[];
+  currentUserId: string | null;
+  userCommentCount: number;
+  user: User | null;
 }
 
 // Funkcja do normalizacji URL/BASE64
@@ -277,33 +274,16 @@ function NotesEditor({
 
 export function PerfumeDetail({
   perfume,
-  initialReadonly = false,
-  isReadOnly: legacyReadOnly,
-  initialComments = [],
-  currentUserId: legacyUserId,
-  userCommentCount: legacyCount = 0,
-  user: legacyUser = null,
+  isReadOnly,
+  initialComments,
+  currentUserId,
+  userCommentCount: initialUserCommentCount,
+  user,
 }: PerfumeDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(legacyUser);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(legacyUserId ?? null);
-  const [isReadOnly, setIsReadOnly] = useState<boolean>(legacyReadOnly ?? initialReadonly);
-
-  useEffect(() => {
-    if (legacyUser) return;
-    let cancelled = false;
-    getCurrentUser().then((u) => {
-      if (cancelled) return;
-      setUser(u as User | null);
-      setCurrentUserId((u as unknown as User | null)?.id ?? null);
-      const isOwner = (u as unknown as User | null)?.id === perfume.user_id;
-      setIsReadOnly(initialReadonly || !isOwner);
-    });
-    return () => { cancelled = true; };
-  }, [perfume.user_id, initialReadonly, legacyUser]);
 
   // Perfume edit states
   const [name, setName] = useState(perfume.name);
@@ -324,33 +304,12 @@ export function PerfumeDetail({
   const [imageUrl, setImageUrl] = useState(perfume.image_url || "");
   const [isFavorite, setIsFavorite] = useState(perfume.is_favorite);
 
-  // Comments states - leniwie doczytywane, nie blokują prefetch detail
-  const [comments, setComments] = useState<PerfumeComment[]>(initialComments);
-  const [commentsLoading, setCommentsLoading] = useState(true);
+  // Comments states
   const [newComment, setNewComment] = useState("");
   const [commentError, setCommentError] = useState<string | null>(null);
-  const [localCommentCount, setLocalCommentCount] = useState(initialUserCommentCount);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      setCommentsLoading(true);
-      try {
-        const [c, cnt] = await Promise.all([
-          getComments(perfume.id),
-          currentUserId ? getUserCommentCount(perfume.id) : Promise.resolve(0),
-        ]);
-        if (!cancelled) {
-          setComments(c);
-          setLocalCommentCount(cnt);
-        }
-      } finally {
-        if (!cancelled) setCommentsLoading(false);
-      }
-    };
-    load();
-    return () => { cancelled = true; };
-  }, [perfume.id, currentUserId]);
+  const [localCommentCount, setLocalCommentCount] = useState(
+    initialUserCommentCount,
+  );
 
   const remainingComments = Math.max(0, 5 - localCommentCount);
   const canComment = currentUserId && remainingComments > 0;
@@ -533,8 +492,6 @@ export function PerfumeDetail({
       if (result.success) {
         setNewComment("");
         setLocalCommentCount((prev) => prev + 1);
-        const updated = await getComments(perfume.id);
-        setComments(updated);
         router.refresh();
       } else {
         setCommentError(result.error || "Nie udało się dodać komentarza");
@@ -547,8 +504,6 @@ export function PerfumeDetail({
       const result = await deleteComment(commentId);
       if (result.success) {
         setLocalCommentCount((prev) => prev - 1);
-        const updated = await getComments(perfume.id);
-        setComments(updated);
         router.refresh();
       } else {
         setCommentError(result.error || "Nie udało się usunąć komentarza");
@@ -960,7 +915,7 @@ export function PerfumeDetail({
           <div className="flex items-center gap-2 mb-6">
             <MessageSquare className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">
-              Komentarze ({commentsLoading ? "…" : comments.length})
+              Komentarze ({initialComments.length})
             </h2>
           </div>
 
@@ -1031,11 +986,7 @@ export function PerfumeDetail({
 
           {/* Comments List */}
           <div className="space-y-4">
-            {commentsLoading ? (
-              <div className="text-center py-8">
-                <p className="text-sm text-muted-foreground">Ładowanie komentarzy…</p>
-              </div>
-            ) : comments.length === 0 ? (
+            {initialComments.length === 0 ? (
               <div className="text-center py-12">
                 <MessageSquare className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
@@ -1043,7 +994,7 @@ export function PerfumeDetail({
                 </p>
               </div>
             ) : (
-              comments.map((comment) => (
+              initialComments.map((comment) => (
                 <div
                   key={comment.id}
                   className="p-4 bg-card border border-border rounded-xl hover:bg-muted/20 transition-colors"

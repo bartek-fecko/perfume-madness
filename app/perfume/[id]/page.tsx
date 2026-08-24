@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getPerfumeById } from "@/lib/actions/perfumes";
+import { getCurrentUser } from "@/lib/actions/auth";
 import { PerfumeDetail } from "@/components/perfume-detail";
+import { getComments, getUserCommentCount } from "@/lib/actions/comments";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -14,12 +16,31 @@ export default async function PerfumeDetailPage({
   const { id } = await params;
   const { readonly } = await searchParams;
 
-  const perfume = await getPerfumeById(id);
+  const [perfume, user] = await Promise.all([
+    getPerfumeById(id),
+    getCurrentUser(),
+  ]);
 
   if (!perfume) {
     notFound();
   }
 
-  // Tylko perfume jest cache'owany (Data Cache) i prefetchowany - user/komentarze leniwie na kliencie
-  return <PerfumeDetail perfume={perfume} initialReadonly={readonly === "true"} />;
+  const isOwner = user?.id === perfume.user_id;
+  const isReadOnly = readonly === "true" || !isOwner;
+  // Pobierz komentarze równolegle - 200-400ms szybciej
+  const [comments, userCommentCount] = await Promise.all([
+    getComments(id),
+    user ? getUserCommentCount(id) : Promise.resolve(0),
+  ]);
+
+  return (
+    <PerfumeDetail
+      perfume={perfume}
+      isReadOnly={isReadOnly}
+      initialComments={comments}
+      currentUserId={user?.id || null}
+      userCommentCount={userCommentCount}
+      user={user}
+    />
+  );
 }

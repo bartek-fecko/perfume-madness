@@ -1,8 +1,7 @@
 "use server";
 
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { brandGroupKey, prettifyBrandName } from "@/lib/utils";
 import type {
   Perfume,
@@ -146,7 +145,6 @@ export async function createPerfume(perfume: {
     }
 
     revalidateTag("perfumes");
-    revalidateTag("perfume");
     return { success: true, perfume: data as Perfume };
   } catch (err) {
     console.error("💥 Unexpected error in createPerfume:", err);
@@ -389,26 +387,21 @@ function mapDbPerfumeToPerfume(data: Record<string, unknown>): Perfume {
 }
 
 export async function getPerfumeById(id: string): Promise<Perfume | null> {
-  return getCachedPerfumeById(id);
-}
+  const supabase = await createClient();
 
-const getCachedPerfumeById = unstable_cache(
-  async (id: string): Promise<Perfume | null> => {
-    // Użyj anon klienta bez cookies() aby Next Data Cache mógł cache'ować (built-in cache)
-    const supabase = createAnonClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-    const { data, error } = await supabase.from("perfumes").select("*").eq("id", id).single();
-    if (error) {
-      console.error("Error fetching perfume:", error);
-      return null;
-    }
-    return mapDbPerfumeToPerfume(data as Record<string, unknown>);
-  },
-  ["perfume-by-id"],
-  { revalidate: 60, tags: ["perfume"] },
-);
+  const { data, error } = await supabase
+    .from("perfumes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching perfume:", error);
+    return null;
+  }
+
+  return mapDbPerfumeToPerfume(data as Record<string, unknown>);
+}
 
 export async function updatePerfume(
   id: string,
@@ -464,7 +457,6 @@ export async function updatePerfume(
   }
 
   revalidateTag("perfumes");
-  revalidateTag("perfume");
   return { success: true };
 }
 
@@ -535,7 +527,6 @@ export async function deletePerfume(
   }
 
   revalidateTag("perfumes");
-  revalidateTag("perfume");
   return { success: true };
 }
 
@@ -579,7 +570,6 @@ export async function toggleFavorite(
   }
 
   revalidateTag("perfumes");
-  revalidateTag("perfume");
   return { success: true, isFavorite: newFavoriteState };
 }
 
