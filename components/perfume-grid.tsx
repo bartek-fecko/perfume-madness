@@ -440,7 +440,12 @@ function SortableBrandTile({
           : "")
       }
       onMouseEnter={() => {
-        if (group.perfumes.length === 1) router.prefetch(`/perfume/${group.perfumes[0].id}`);
+        if (group.perfumes.length === 1) {
+          const id = group.perfumes[0].id;
+          console.log("[prefetch] tile hover", id);
+          router.prefetch(`/perfume/${id}`);
+          fetch(`/perfume/${id}`).catch(() => {});
+        }
       }}
       onClick={onOpen}
       onKeyDown={(e) => {
@@ -456,18 +461,14 @@ function SortableBrandTile({
       <div
         className="relative aspect-square bg-white dark:bg-card overflow-hidden"
         onMouseEnter={() => {
-          if (group.perfumes.length === 1) router.prefetch(`/perfume/${group.perfumes[0].id}`);
+          if (group.perfumes.length === 1) {
+            const id = group.perfumes[0].id;
+            console.log("[prefetch] aspect hover", id);
+            router.prefetch(`/perfume/${id}`);
+            fetch(`/perfume/${id}`).catch(() => {});
+          }
         }}
       >
-        {group.perfumes.length === 1 && (
-          <Link
-            href={`/perfume/${group.perfumes[0].id}`}
-            prefetch
-            aria-hidden
-            tabIndex={-1}
-            className="hidden"
-          />
-        )}
         {group.perfumes.length === 1 ? (
           <TileImage
             src={group.perfumes[0].image_url || "/placeholder.svg"}
