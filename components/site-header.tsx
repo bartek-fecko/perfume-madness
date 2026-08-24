@@ -402,6 +402,7 @@ export function SiteHeader({
       <div className={`h-16 px-3 sm:px-6 flex items-center gap-3 sm:gap-5 w-full ${innerClass} mx-auto`}>
         <Link
           href="/"
+          prefetch
           className="flex items-center gap-2.5 min-w-0 shrink-0 hover:opacity-80 transition-opacity"
         >
           <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-border bg-white dark:bg-card shrink-0 shadow-sm">

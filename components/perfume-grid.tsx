@@ -437,6 +437,11 @@ function SortableBrandTile({
           ? " shadow-lg ring-2 ring-primary/40 will-change-transform transition-none"
           : "")
       }
+      onMouseEnter={() => {
+        if (group.perfumes.length === 1) {
+          router.prefetch(`/perfume/${group.perfumes[0].id}`);
+        }
+      }}
       onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
