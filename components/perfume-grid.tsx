@@ -171,23 +171,29 @@ export function PerfumeGrid({
     setOpenBrandKey(key);
   };
 
-  // Prefetch detail pages - agresywnie dla wszystkich widocznych kafelków
+  // Prefetch tylko dla kafelków z 1 perfumą - spójnie dla każdego single
   useEffect(() => {
-    // idle callback - nie blokuj głównego wątku, prefetch wszystkich brandów w tle
     const doPrefetch = () => {
       for (const g of brandGroups) {
         if (g.perfumes.length === 1) {
           router.prefetch(`/perfume/${g.perfumes[0].id}`);
-        } else {
-          // dla multi-perfume: prefetch każdego perfumu w grupie (max 4 na kafelku)
-          g.perfumes.slice(0, 4).forEach((p) => router.prefetch(`/perfume/${p.id}`));
         }
       }
     };
     const idle = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
     if (idle) idle(doPrefetch);
-    else setTimeout(doPrefetch, 500);
+    else setTimeout(doPrefetch, 300);
   }, [brandGroups, router]);
+
+  // Prefetch dopiero po otwarciu modala dla zgrupowanych (>1)
+  useEffect(() => {
+    if (displayGroup && displayGroup.perfumes.length > 1) {
+      const t = setTimeout(() => {
+        displayGroup.perfumes.forEach((p) => router.prefetch(`/perfume/${p.id}`));
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [displayGroup, router]);
 
   const handleCloseBrand = () => {
     setOpenBrandKey(null);
@@ -422,6 +428,12 @@ function SortableBrandTile({
   onOpen,
 }: SortableBrandTileProps) {
   const router = useRouter();
+  // Prefetch pojedynczych kafelków spójnie - każdy single tile prefetchnie przy mount
+  useEffect(() => {
+    if (group.perfumes.length === 1 && group.perfumes[0]?.id) {
+      router.prefetch(`/perfume/${group.perfumes[0].id}`);
+    }
+  }, [group.key, router]);
   const {
     attributes,
     listeners,
